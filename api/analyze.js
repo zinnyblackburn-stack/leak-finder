@@ -57,7 +57,7 @@ Sort items by confidence (high first), then by annual cost descending.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
-        max_tokens: 1500,
+        max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: "user", content: text }],
       }),
@@ -66,7 +66,7 @@ Sort items by confidence (high first), then by annual cost descending.`;
     if (!response.ok) {
       const errText = await response.text();
       console.error("Anthropic API error:", errText);
-      return res.status(502).json({ error: "Claude API request failed" });
+      return res.status(502).json({ error: `Claude API request failed: ${errText.slice(0, 300)}` });
     }
 
     const data = await response.json();
@@ -76,11 +76,20 @@ Sort items by confidence (high first), then by annual cost descending.`;
     }
 
     const cleaned = textBlock.text.trim().replace(/^```json|^```|```$/g, "").trim();
-    const parsed = JSON.parse(cleaned);
+
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (parseErr) {
+      console.error("JSON parse failed. Raw text was:", cleaned);
+      return res.status(500).json({
+        error: `Response wasn't valid JSON (likely cut off). Stop reason: ${data.stop_reason}. First 200 chars: ${cleaned.slice(0, 200)}`,
+      });
+    }
 
     return res.status(200).json(parsed);
   } catch (err) {
     console.error("Server error:", err);
-    return res.status(500).json({ error: "Failed to analyze data" });
+    return res.status(500).json({ error: `Failed to analyze data: ${err.message}` });
   }
 }
