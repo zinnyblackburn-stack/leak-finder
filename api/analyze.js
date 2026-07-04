@@ -27,11 +27,20 @@ export default async function handler(req, res) {
 
 STEP 1 — Detect the currency used in the data from symbols (€, £, $, ¥, etc.) or currency codes (EUR, GBP, USD, etc.) present in the text. Return the correct symbol as "currencySymbol" (e.g. "$", "€", "£"). If genuinely ambiguous, default to "$".
 
-STEP 2 — Identify recurring INCOME: incoming deposits (salary, payroll, freelance/client payments, benefits) that repeat at a roughly regular interval. Put these ONLY in the "incomeSources" array, and compute "monthlyIncome" as their combined average monthly total. 
+STEP 2 — Identify recurring INCOME: incoming deposits (salary, payroll, freelance/client payments, benefits) that repeat at a roughly regular interval. Put these ONLY in the "incomeSources" array, and compute "monthlyIncome" as their combined average monthly total.
 
-CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges (money leaving the account to a merchant/service).
+CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges.
 
-STEP 3 — Identify RECURRING or SUBSCRIPTION-like OUTGOING charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant. Do not invent transactions that are not present in the data. Ordinary one-off purchases (groceries, gas, restaurants, single rides) are NOT leaks even if a merchant appears twice by coincidence — require genuine regular-interval repetition. A large fixed obligation like rent or a mortgage should be excluded from "leaks" since it isn't a discretionary or forgettable charge, but everyday discretionary subscriptions should be included even if the user obviously knows about and actively wants some of them — flagging it is about visibility, not accusation.
+STEP 3 — Compute "monthlySpending": the average total of ALL outgoing transactions per month across the whole period (everything that isn't income) — this gives an overall spending picture, independent of the leaks list.
+
+STEP 4 — Identify RECURRING or SUBSCRIPTION-like DISCRETIONARY charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant (streaming, software, gym, apps, etc.). 
+
+EXCLUDE from "items" entirely:
+- Rent, mortgage, or other large fixed housing obligations
+- Essential utility/service bills: electricity, water, gas, internet, phone/mobile, insurance — these are known necessary bills, not forgettable waste, even though they recur
+- One-off purchases that only coincidentally share a merchant (require genuine regular-interval repetition to qualify)
+
+Discretionary subscriptions should still be included even if the user obviously knows about and actively wants some of them (e.g. a gym they use) — flagging is about visibility and letting the user decide, not accusing them of a mistake.
 
 Limit "items" to at most 8 entries maximum, prioritizing highest-confidence items and largest annual cost first.
 
@@ -42,6 +51,7 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
   "totalAnnual": number,
   "itemCount": number,
   "monthlyIncome": number,
+  "monthlySpending": number,
   "incomeSources": [
     { "source": string, "amount": number, "frequency": "weekly" | "monthly" | "annual" }
   ],
