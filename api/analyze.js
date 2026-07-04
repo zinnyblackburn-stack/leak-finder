@@ -79,7 +79,8 @@ Sort "items" by confidence (high first), then by annual cost descending.`;
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
-        max_tokens: 4096,
+        max_tokens: 8192,
+        thinking: { type: "disabled" },
         system: systemPrompt,
         messages: [{ role: "user", content: text }],
       }),
@@ -118,4 +119,3 @@ Sort "items" by confidence (high first), then by annual cost descending.`;
     return res.status(500).json({ error: `Failed to analyze data: ${err.message}` });
   }
 }
-
