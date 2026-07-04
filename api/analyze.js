@@ -23,17 +23,28 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing 'text' in request body" });
   }
 
-  const systemPrompt = `You are a financial analysis engine embedded in an app. You will receive raw pasted bank or credit card transaction data spanning multiple months, in any messy format (CSV-like, spaced columns, copy-pasted text).
+  const systemPrompt = `You are a financial analysis engine embedded in an app. You will receive raw pasted bank or credit card transaction data spanning multiple months, in any messy format (CSV-like, spaced columns, copy-pasted text), in any currency.
 
-Identify RECURRING or SUBSCRIPTION-like charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant. Do not invent transactions that are not present in the data. Ordinary one-off purchases (groceries, gas, restaurants, single rides) are NOT leaks even if a merchant appears twice by coincidence — require genuine regular-interval repetition. A large fixed obligation like rent should be excluded from "leaks" since it isn't a discretionary or forgettable charge, but everyday discretionary subscriptions should be included even if the user obviously knows about some of them.
+STEP 1 — Detect the currency used in the data from symbols (€, £, $, ¥, etc.) or currency codes (EUR, GBP, USD, etc.) present in the text. Return the correct symbol as "currencySymbol" (e.g. "$", "€", "£"). If genuinely ambiguous, default to "$".
 
-Limit to at most 8 items maximum, prioritizing highest-confidence items and largest annual cost first.
+STEP 2 — Identify recurring INCOME: incoming deposits (salary, payroll, freelance/client payments, benefits) that repeat at a roughly regular interval. Put these ONLY in the "incomeSources" array, and compute "monthlyIncome" as their combined average monthly total. 
+
+CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges (money leaving the account to a merchant/service).
+
+STEP 3 — Identify RECURRING or SUBSCRIPTION-like OUTGOING charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant. Do not invent transactions that are not present in the data. Ordinary one-off purchases (groceries, gas, restaurants, single rides) are NOT leaks even if a merchant appears twice by coincidence — require genuine regular-interval repetition. A large fixed obligation like rent or a mortgage should be excluded from "leaks" since it isn't a discretionary or forgettable charge, but everyday discretionary subscriptions should be included even if the user obviously knows about and actively wants some of them — flagging it is about visibility, not accusation.
+
+Limit "items" to at most 8 entries maximum, prioritizing highest-confidence items and largest annual cost first.
 
 Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text, matching exactly this schema:
 {
+  "currencySymbol": string,
   "totalMonthly": number,
   "totalAnnual": number,
   "itemCount": number,
+  "monthlyIncome": number,
+  "incomeSources": [
+    { "source": string, "amount": number, "frequency": "weekly" | "monthly" | "annual" }
+  ],
   "items": [
     {
       "merchant": string,
@@ -45,7 +56,8 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
     }
   ]
 }
-Sort items by confidence (high first), then by annual cost descending.`;
+If no recurring income is identifiable, return "monthlyIncome": 0 and an empty "incomeSources" array — do not guess or fabricate income.
+Sort "items" by confidence (high first), then by annual cost descending.`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
