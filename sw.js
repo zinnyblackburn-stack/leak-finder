@@ -1,4 +1,4 @@
-const CACHE_NAME = "leak-finder-v1";
+const CACHE_NAME = "leak-finder-v2";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (event) => {
@@ -17,10 +17,17 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Network-first: always try to get the freshest version first (critical while
+// actively developing). Falls back to cache only if the network is unavailable.
 self.addEventListener("fetch", (event) => {
-  // Network-first for API calls, cache-first for the app shell
-  if (event.request.url.includes("api.anthropic.com")) return;
+  if (event.request.url.includes("api.anthropic.com") || event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    fetch(event.request)
+      .then((response) => {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
