@@ -94,7 +94,10 @@ Sort "items" by confidence (high first), then by annual cost descending.`;
     const data = await response.json();
     const textBlock = (data.content || []).find((b) => b.type === "text");
     if (!textBlock) {
-      return res.status(502).json({ error: "No text in Claude response" });
+      console.error("Full response with no text block:", JSON.stringify(data));
+      return res.status(502).json({
+        error: `No text in Claude response. stop_reason: ${data.stop_reason}. content types: ${(data.content || []).map(b => b.type).join(",") || "empty"}. usage: ${JSON.stringify(data.usage)}`,
+      });
     }
 
     const cleaned = textBlock.text.trim().replace(/^```json|^```|```$/g, "").trim();
@@ -115,3 +118,4 @@ Sort "items" by confidence (high first), then by annual cost descending.`;
     return res.status(500).json({ error: `Failed to analyze data: ${err.message}` });
   }
 }
+
