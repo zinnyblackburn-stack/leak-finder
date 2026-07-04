@@ -535,11 +535,20 @@ ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
 </script>
 
 <script>
+  // Service worker caching is disabled for now while the app is actively changing —
+  // it was causing old versions to reappear intermittently. This actively clears
+  // out any previously registered worker/cache so everyone gets the live version.
+  // Re-enable proper registration (see commented block below) once the product
+  // is stable and ready for real offline support.
   if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    });
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
   }
+  if ("caches" in window) {
+    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+  }
+  // window.addEventListener("load", () => {
+  //   navigator.serviceWorker.register("./sw.js").catch(() => {});
+  // });
 </script>
 </body>
 </html>
