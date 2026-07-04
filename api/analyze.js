@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
 STEP 1 — Detect the currency used in the data. Look carefully for currency symbols (€, £, $, ¥, etc.) ANYWHERE in the text, or 3-letter currency codes (EUR, GBP, USD, CHF, etc.), or country-specific formatting hints (comma vs period as decimal separator). Return the correct symbol as "currencySymbol" (e.g. "$", "€", "£"). Only default to "$" if there is truly zero indication of any other currency anywhere in the text — do not default to "$" just because the amounts look like plain numbers.
 
-STEP 2 — Identify recurring INCOME: incoming deposits (salary, payroll, freelance/client payments, benefits) that repeat at a roughly regular interval. Put these ONLY in the "incomeSources" array, and compute "monthlyIncome" as their combined average monthly total.
+STEP 2 — Identify recurring INCOME: incoming deposits that represent salary, payroll, wages, freelance/client payments, or benefits. IMPORTANT: income does NOT need to repeat multiple times to count — a single clear paycheck-like deposit (e.g. labeled PAYROLL, SALARY, WAGES, DIRECT DEP, an employer name, or a client/invoice payment) is enough evidence on its own. Look for these keywords and patterns liberally rather than requiring proof of a repeating pattern first. Put these ONLY in the "incomeSources" array, and compute "monthlyIncome" as their combined average monthly total (if only one deposit is seen, use its amount directly as the monthly estimate).
 
 CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges.
 
