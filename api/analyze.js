@@ -1,4 +1,4 @@
-// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel
+// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel
 // will automatically expose it at POST /api/analyze — no extra config needed.
 //
 // IMPORTANT: after deploying, go to your Vercel project settings ->
@@ -33,6 +33,13 @@ CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array und
 
 STEP 3 — Compute "monthlySpending": the average total of ALL outgoing transactions per month across the whole period (everything that isn't income) — this gives an overall spending picture, independent of the leaks list. Compute this carefully by actually dividing total outgoing spend by the number of distinct months present in the data.
 
+STEP 3b — Split that same spending into two categories and report their average monthly totals:
+- "monthlyEssential": necessities — groceries, utilities, transport/fuel, insurance, rent/mortgage, essential bills
+- "monthlyDiscretionary": everything else optional — dining out, entertainment, shopping, subscriptions, hobbies
+These two numbers should roughly add up to "monthlySpending".
+
+STEP 3c — Identify the single spending category with the highest total spend across the whole period (e.g. "Groceries", "Dining Out", "Shopping", "Transport"). Report "largestCategoryName" and "largestCategoryTotal" (the total amount spent in that category across the entire period provided, not monthly average).
+
 STEP 4 — Identify RECURRING or SUBSCRIPTION-like DISCRETIONARY charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant (streaming, software, gym, apps, etc.).
 
 EXCLUDE from "items" entirely:
@@ -54,6 +61,10 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
   "currencySymbol": string,
   "monthlyIncome": number,
   "monthlySpending": number,
+  "monthlyEssential": number,
+  "monthlyDiscretionary": number,
+  "largestCategoryName": string,
+  "largestCategoryTotal": number,
   "incomeSources": [
     { "source": string, "amount": number, "frequency": "weekly" | "monthly" | "annual" }
   ],
