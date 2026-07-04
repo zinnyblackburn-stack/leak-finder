@@ -1,4 +1,4 @@
-// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel
+// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel// Vercel serverless function. Deploy this file at /api/analyze.js and Vercel
 // will automatically expose it at POST /api/analyze — no extra config needed.
 //
 // IMPORTANT: after deploying, go to your Vercel project settings ->
@@ -83,7 +83,6 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       body: JSON.stringify({
         model: "claude-sonnet-5",
         max_tokens: 8192,
-        temperature: 0,
         thinking: { type: "disabled" },
         system: systemPrompt,
         messages: [{ role: "user", content: text }],
