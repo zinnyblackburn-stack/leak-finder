@@ -259,13 +259,77 @@ function Ring({ pct, size = 132 }) {
   );
 }
 
+// ---- deterministic scoring helpers (all math done here, never trusted to the model) ----
+function bandColor(value, greenMax, yellowMax) {
+  if (value <= greenMax) return C.green;
+  if (value <= yellowMax) return C.orange;
+  return C.red;
+}
+function savingsColor(v) {
+  if (v >= 30) return C.green;
+  if (v >= 20) return C.orange;
+  return C.red;
+}
+function computeScore({ savingsRate, recurringPct, spendPct }) {
+  const savingsComponent = Math.max(0, Math.min(40, (savingsRate / 30) * 40));
+  const recurringComponent = Math.max(0, Math.min(30, 30 - (recurringPct / 20) * 30));
+  const spendComponent = Math.max(0, Math.min(30, 30 - ((spendPct - 50) / 40) * 30));
+  return Math.round(Math.max(0, Math.min(100, savingsComponent + recurringComponent + spendComponent)));
+}
+const SCORE_BANDS = [
+  [10, "You're just getting started. Small changes today can lead to big improvements over time."],
+  [20, "There's plenty of room to grow. Focus on reducing unnecessary spending and building consistent saving habits."],
+  [30, "You're moving in the right direction, but your finances could benefit from a few meaningful adjustments."],
+  [40, "A decent foundation, but improving your spending habits now will make saving much easier."],
+  [50, "You're around the halfway mark. A few smart changes could noticeably improve your financial health."],
+  [60, "You're doing well. Keep reducing unnecessary expenses and your progress will continue to build."],
+  [70, "A strong financial position. Stay consistent and look for small opportunities to save even more."],
+  [80, "Great work! Your finances are in good shape, and you're building a solid path toward financial freedom."],
+  [90, "Excellent! Your spending habits support long-term success. Keep up the consistency."],
+  [100, "Outstanding! You're making exceptional financial decisions and maximizing your potential to build lasting wealth."],
+];
+function scoreDescription(score) {
+  const band = SCORE_BANDS.find(([max]) => score <= max);
+  return band ? band[1] : SCORE_BANDS[SCORE_BANDS.length - 1][1];
+}
+
+function StatCard({ label, subtitle, value, unlocked, color, description, onClick }) {
+  return (
+    <button onClick={onClick} style={{ width: "100%", textAlign: "left", background: C.card, border: "none", borderRadius: 18, padding: "16px 18px", marginBottom: 10, cursor: unlocked ? "default" : "pointer", display: "block" }}>
+      <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
+      {subtitle && <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2 }}>{subtitle}</div>}
+      <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8, color: unlocked ? color : C.textPrimary, filter: unlocked ? "none" : "blur(8px)" }}>
+        {value}
+      </div>
+      {description && (
+        <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 8, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
+          {description}
+        </div>
+      )}
+      {!unlocked && (
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10 }}>
+          <Icon.Lock size={12} color={C.blue} />
+          <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
+        </div>
+      )}
+    </button>
+  );
+}
+
 function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, confColor, onBack }) {
   const cur = result.currencySymbol || "$";
   const visibleItems = unlocked ? result.items : result.items.slice(0, 1);
   const lockedCount = result.items.length - visibleItems.length;
   const hasIncome = result.monthlyIncome > 0;
-  const leakPct = hasIncome ? Math.min(100, Math.round((result.totalMonthly / result.monthlyIncome) * 100)) : null;
-  const spendPct = hasIncome ? Math.min(999, Math.round((result.monthlySpending / result.monthlyIncome) * 100)) : null;
+
+  const recurringPct = hasIncome ? (result.totalMonthly / result.monthlyIncome) * 100 : 0;
+  const spendPct = hasIncome ? (result.monthlySpending / result.monthlyIncome) * 100 : 0;
+  const savingsRate = hasIncome ? ((result.monthlyIncome - result.monthlySpending) / result.monthlyIncome) * 100 : 0;
+  const discretionaryPct = hasIncome && result.monthlyDiscretionary != null ? (result.monthlyDiscretionary / result.monthlyIncome) * 100 : null;
+  const essentialPct = hasIncome && result.monthlyEssential != null ? (result.monthlyEssential / result.monthlyIncome) * 100 : null;
+  const score = hasIncome ? computeScore({ savingsRate, recurringPct, spendPct }) : null;
+
+  const fmt = (n) => Math.round(n).toLocaleString();
 
   return (
     <div style={{ paddingBottom: 24 }}>
@@ -282,61 +346,109 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div>
             <div style={{ color: "#EAF3FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
             <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString()}</div>
-            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{result.totalMonthly?.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</div>
+            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{fmt(result.totalMonthly)}/mo</div>
           </div>
         </div>
       </div>
 
       {hasIncome && (
-        <div style={{ margin: "0 20px 12px", display: "flex", gap: 10 }}>
-          <div style={{ flex: 1, background: C.card, borderRadius: 18, padding: "14px 16px" }}>
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>MONTHLY INCOME</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.textPrimary, marginTop: 2 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
+        <div style={{ margin: "0 20px 20px" }}>
+          <div style={{ background: C.card, borderRadius: 18, padding: "16px 18px", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Monthly Income</div>
+            <div style={{ fontSize: 28, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
           </div>
 
-          <button
-            onClick={() => !unlocked && setUnlocked(true)}
-            style={{
-              flex: 1, background: C.card, borderRadius: 18, padding: "14px 16px",
-              border: "none", textAlign: "left", position: "relative", overflow: "hidden",
-              cursor: unlocked ? "default" : "pointer",
-            }}
-          >
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>LEAKS vs INCOME</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.red, marginTop: 2, filter: unlocked ? "none" : "blur(7px)" }}>
-              {leakPct}%
-            </div>
-            {!unlocked && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(242,242,247,0.55)" }}>
-                <Icon.Lock size={13} color={C.textPrimary} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>Unlock</span>
-              </div>
-            )}
-          </button>
-        </div>
-      )}
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "18px 4px 8px", textTransform: "uppercase", letterSpacing: 0.3 }}>Financial Health</div>
 
-      {hasIncome && (
-        <div style={{ margin: "0 20px 16px" }}>
-          <button
+          <StatCard
+            label="Savings Rate"
+            value={`${Math.round(savingsRate)}%`}
+            unlocked={unlocked}
+            color={savingsColor(savingsRate)}
+            description="This is the money you're keeping for your future. Aim to save at least 20% of your income, with 30% or more being an excellent target. Every month you save brings you one step closer to financial freedom."
             onClick={() => !unlocked && setUnlocked(true)}
-            style={{
-              width: "100%", background: C.card, borderRadius: 18, padding: "14px 16px",
-              border: "none", textAlign: "left", position: "relative", overflow: "hidden",
-              cursor: unlocked ? "default" : "pointer",
-            }}
-          >
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>TOTAL SPENDING vs INCOME</div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: C.orange, marginTop: 2, filter: unlocked ? "none" : "blur(7px)" }}>
-              {spendPct}%
-            </div>
-            {!unlocked && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(242,242,247,0.55)" }}>
-                <Icon.Lock size={13} color={C.textPrimary} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>Tap to unlock full report</span>
+          />
+
+          <StatCard
+            label="Recurring Costs / Income"
+            subtitle="(monthly commitments, subscriptions, leaks)"
+            value={`${Math.round(recurringPct)}%  ·  ${cur}${fmt(result.totalMonthly)}/mo`}
+            unlocked={unlocked}
+            color={bandColor(recurringPct, 10, 20)}
+            description="Try to keep recurring costs below 10–15% of your income. Under 10% is excellent, while above 20% can limit your financial flexibility. Keeping monthly commitments low makes it easier to save and adapt to life's changes."
+            onClick={() => !unlocked && setUnlocked(true)}
+          />
+
+          <StatCard
+            label="Costs / Income"
+            subtitle="(how much of your income you're spending overall)"
+            value={`${Math.round(spendPct)}%  ·  ${cur}${fmt(result.monthlySpending)}/mo`}
+            unlocked={unlocked}
+            color={bandColor(spendPct, 60, 80)}
+            description="Aim to keep this below 70% of your income. Below 60% is excellent, while above 80% can make saving much harder. Every percentage point you reduce gives you more freedom to save, invest, and reach your goals."
+            onClick={() => !unlocked && setUnlocked(true)}
+          />
+
+          {discretionaryPct != null && (
+            <StatCard
+              label="Discretionary Spending"
+              subtitle="(how much you're spending on wants rather than needs)"
+              value={`${Math.round(discretionaryPct)}%`}
+              unlocked={unlocked}
+              color={bandColor(discretionaryPct, 15, 30)}
+              description="Wants are things you enjoy but could trim without much impact — a good first place to look for extra savings."
+              onClick={() => !unlocked && setUnlocked(true)}
+            />
+          )}
+
+          {essentialPct != null && (
+            <StatCard
+              label="Essential Spending"
+              subtitle="(groceries, utilities, transport, insurance)"
+              value={`${Math.round(essentialPct)}%`}
+              unlocked={unlocked}
+              color={bandColor(essentialPct, 50, 65)}
+              description="These are costs you need to cover no matter what — the goal isn't to cut these, just to be aware of them."
+              onClick={() => !unlocked && setUnlocked(true)}
+            />
+          )}
+
+          {result.largestCategoryName && (
+            <StatCard
+              label="Largest Spending Category"
+              value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`}
+              unlocked={unlocked}
+              color={C.textPrimary}
+              description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner."
+              onClick={() => !unlocked && setUnlocked(true)}
+            />
+          )}
+
+          {score != null && (
+            <div style={{ background: `linear-gradient(135deg, ${C.textPrimary}, #3A3A3C)`, borderRadius: 18, padding: "18px 18px", marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: "#B8B8BD", fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Financial Health Score</div>
+              <div style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginTop: 6, filter: unlocked ? "none" : "blur(9px)" }}>
+                {score} <span style={{ fontSize: 16, fontWeight: 600, color: "#B8B8BD" }}>/ 100</span>
               </div>
-            )}
-          </button>
+              <div style={{ fontSize: 12.5, color: "#D5D5DA", marginTop: 10, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
+                {scoreDescription(score)}
+              </div>
+              {!unlocked && (
+                <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 12, background: "none", border: "none", padding: 0 }}>
+                  <Icon.Lock size={12} color="#FFD60A" />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#FFD60A" }}>Tap to unlock</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {unlocked && (
+            <div style={{ marginTop: 12, padding: "14px 16px", background: "#EAF3FF", borderRadius: 14 }}>
+              <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
+                Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -364,11 +476,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                      {cur}{item.avgAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
+                      {cur}{item.lastAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
                     </div>
-                    {item.lastAmount != null && Math.abs(item.lastAmount - item.avgAmount) > 0.5 && (
-                      <div style={{ fontSize: 11, color: C.textSecondary }}>avg · last {cur}{item.lastAmount}</div>
-                    )}
+                    <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>this month</div>
+                    <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>avg/mo: {cur}{item.avgAmount}</div>
                   </div>
                   <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
                 </div>
@@ -407,8 +518,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 <Icon.Lock size={17} color="#1C1C1E" />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Unlock {lockedCount} more {lockedCount === 1 ? "leak" : "leaks"}</div>
-                <div style={{ color: "#9A9AA0", fontSize: 12 }}>Full list + cancellation scripts</div>
+                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Unlock your full report</div>
+                <div style={{ color: "#9A9AA0", fontSize: 12 }}>All leaks, scripts & financial health metrics</div>
               </div>
             </div>
             <div style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>$9</div>
