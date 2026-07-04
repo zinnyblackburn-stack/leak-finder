@@ -16,11 +16,12 @@
 <link rel="icon" href="./icon-192.png" />
 
 <style>
-  html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; }
+  html, body { margin: 0; padding: 0; background: #1C1C1E; overscroll-behavior: none; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   button { cursor: pointer; font-family: inherit; }
   textarea { font-family: inherit; }
-  #root { min-height: 100vh; }
+  #root { min-height: 100vh; display: flex; justify-content: center; }
+  .app-shell { width: 100%; max-width: 480px; min-height: 100vh; background: var(--app-bg, #F2F2F7); }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 
@@ -104,6 +105,10 @@ const SAMPLE_DATA = `01/15/2026  NETFLIX.COM               -15.99
 02/02/2026  CALM.COM SUBSCRIPTION     -14.99
 03/02/2026  CALM.COM SUBSCRIPTION     -14.99
 04/02/2026  CALM.COM SUBSCRIPTION     -14.99
+01/05/2026  FACEBK ADS                -42.10
+02/05/2026  FACEBK ADS                -67.85
+03/05/2026  FACEBK ADS                -31.40
+04/05/2026  FACEBK ADS                -89.20
 01/09/2026  TRADER JOES #442          -63.10
 01/18/2026  SHELL OIL 3921            -41.02
 02/05/2026  AMAZON MKTPLACE           -22.40
@@ -159,7 +164,7 @@ function LeakFinder() {
   const confColor = (conf) => (conf === "high" ? C.red : conf === "medium" ? C.orange : C.textSecondary);
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: FONT }}>
+    <div className="app-shell" style={{ background: C.bg, fontFamily: FONT }}>
       <div style={{ height: "env(safe-area-inset-top, 0px)", background: C.bg }} />
       <div style={{ minHeight: "100vh", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {screen === "input" && <InputScreen rawText={rawText} setRawText={setRawText} onAnalyze={analyze} />}
@@ -258,10 +263,14 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const cur = result.currencySymbol || "$";
   const visibleItems = unlocked ? result.items : result.items.slice(0, 1);
   const lockedCount = result.items.length - visibleItems.length;
+  const hasIncome = result.monthlyIncome > 0;
+  const leakPct = hasIncome ? Math.min(100, Math.round((result.totalMonthly / result.monthlyIncome) * 100)) : null;
+  const spendPct = hasIncome ? Math.min(999, Math.round((result.monthlySpending / result.monthlyIncome) * 100)) : null;
 
   return (
-    <div>
+    <div style={{ paddingBottom: 24 }}>
       <NavTitle onBack={onBack}>Your Report</NavTitle>
+
       <div style={{ margin: "12px 20px 12px" }}>
         <div style={{ background: `linear-gradient(135deg, ${C.blue}, #4DA3FF)`, borderRadius: 24, padding: 24, display: "flex", alignItems: "center", gap: 18, boxShadow: "0 8px 24px rgba(0,122,255,0.35)" }}>
           <div style={{ position: "relative", flexShrink: 0 }}>
@@ -273,53 +282,68 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div>
             <div style={{ color: "#EAF3FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
             <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString()}</div>
-            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{result.totalMonthly?.toLocaleString()}/mo</div>
+            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{result.totalMonthly?.toLocaleString(undefined, { maximumFractionDigits: 0 })}/mo</div>
           </div>
         </div>
       </div>
 
-      {/* Free stat: income amount, always visible */}
-      {result.monthlyIncome > 0 && (
-        <div style={{ margin: "0 20px 12px" }}>
-          <div style={{ background: C.card, borderRadius: 18, padding: "14px 16px" }}>
-            <div style={{ fontSize: 12, color: C.textSecondary, fontWeight: 600 }}>MONTHLY INCOME</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: C.textPrimary }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
+      {hasIncome && (
+        <div style={{ margin: "0 20px 12px", display: "flex", gap: 10 }}>
+          <div style={{ flex: 1, background: C.card, borderRadius: 18, padding: "14px 16px" }}>
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>MONTHLY INCOME</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.textPrimary, marginTop: 2 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
           </div>
+
+          <button
+            onClick={() => !unlocked && setUnlocked(true)}
+            style={{
+              flex: 1, background: C.card, borderRadius: 18, padding: "14px 16px",
+              border: "none", textAlign: "left", position: "relative", overflow: "hidden",
+              cursor: unlocked ? "default" : "pointer",
+            }}
+          >
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>LEAKS vs INCOME</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.red, marginTop: 2, filter: unlocked ? "none" : "blur(7px)" }}>
+              {leakPct}%
+            </div>
+            {!unlocked && (
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(242,242,247,0.55)" }}>
+                <Icon.Lock size={13} color={C.textPrimary} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>Unlock</span>
+              </div>
+            )}
+          </button>
         </div>
       )}
 
-      {/* Locked stat: percentages — the premium insight */}
-      {result.monthlyIncome > 0 && (
+      {hasIncome && (
         <div style={{ margin: "0 20px 16px" }}>
-          <div style={{ background: C.card, borderRadius: 18, padding: "14px 16px", display: "flex", justifyContent: "space-between", position: "relative", overflow: "hidden" }}>
-            <div>
-              <div style={{ fontSize: 12, color: C.textSecondary, fontWeight: 600 }}>LEAKS ARE</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: unlocked ? C.red : "transparent", textShadow: unlocked ? "none" : `0 0 12px ${C.textPrimary}55`, filter: unlocked ? "none" : "blur(6px)" }}>
-                {Math.min(100, Math.round((result.totalMonthly / result.monthlyIncome) * 100))}%
-              </div>
-              <div style={{ fontSize: 11, color: C.textSecondary }}>of income</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 12, color: C.textSecondary, fontWeight: 600 }}>SPENDING IS</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: unlocked ? C.orange : "transparent", filter: unlocked ? "none" : "blur(6px)" }}>
-                {Math.min(999, Math.round((result.monthlySpending / result.monthlyIncome) * 100))}%
-              </div>
-              <div style={{ fontSize: 11, color: C.textSecondary }}>of income</div>
+          <button
+            onClick={() => !unlocked && setUnlocked(true)}
+            style={{
+              width: "100%", background: C.card, borderRadius: 18, padding: "14px 16px",
+              border: "none", textAlign: "left", position: "relative", overflow: "hidden",
+              cursor: unlocked ? "default" : "pointer",
+            }}
+          >
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3 }}>TOTAL SPENDING vs INCOME</div>
+            <div style={{ fontSize: 19, fontWeight: 800, color: C.orange, marginTop: 2, filter: unlocked ? "none" : "blur(7px)" }}>
+              {spendPct}%
             </div>
             {!unlocked && (
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(255,255,255,0.35)" }}>
-                <Icon.Lock size={14} color={C.textPrimary} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary }}>Unlock to see</span>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, background: "rgba(242,242,247,0.55)" }}>
+                <Icon.Lock size={13} color={C.textPrimary} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: C.textPrimary }}>Tap to unlock full report</span>
               </div>
             )}
-          </div>
+          </button>
         </div>
       )}
 
       <div style={{ margin: "0 20px 16px", padding: "12px 14px", background: "#EAF3FF", borderRadius: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
         <Icon.Sparkles size={15} color={C.blue} />
         <span style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
-          Not everything below is a mistake — some may be subscriptions you're happy to keep. Use this list to decide what's still worth it, and cancel anything you don't recognize or don't use anymore.
+          Not everything below is a leak — some may be subscriptions you're happy to keep. Use this list to decide what's still worth it, and cancel anything you don't recognize or don't use anymore.
         </span>
       </div>
 
@@ -338,9 +362,14 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                   <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                  <span style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                    {cur}{item.amount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
-                  </span>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
+                      {cur}{item.avgAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
+                    </div>
+                    {item.lastAmount != null && Math.abs(item.lastAmount - item.avgAmount) > 0.5 && (
+                      <div style={{ fontSize: 11, color: C.textSecondary }}>avg · last {cur}{item.lastAmount}</div>
+                    )}
+                  </div>
                   <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
                 </div>
               </button>
@@ -361,7 +390,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               {Array.from({ length: Math.min(lockedCount, 3) }).map((_, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.6, userSelect: "none" }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>••••••• •••••</div>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>$••.••</div>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>{cur}••.••</div>
                 </div>
               ))}
             </div>
