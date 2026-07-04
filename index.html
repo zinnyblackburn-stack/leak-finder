@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Leak Finder</title>
+
+<!-- PWA / installability -->
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#007AFF" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Leak Finder" />
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+<link rel="icon" href="./icon-192.png" />
+
+<style>
+  html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  button { cursor: pointer; font-family: inherit; }
+  textarea { font-family: inherit; }
+  #root { min-height: 100vh; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState } = React;
+
+// ---- lightweight inline icons (no external icon lib needed) ----
+const Icon = {
+  Lock: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  ),
+  ChevronDown: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={p.style}>
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+  ),
+  Copy: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  ),
+  Check: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6L9 17l-5-5"/>
+    </svg>
+  ),
+  Sparkles: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.9 4.9L19 9.8l-4.9 1.9L12 17l-1.9-4.9L5 9.8l4.9-1.9L12 3z"/>
+    </svg>
+  ),
+  ArrowLeft: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+    </svg>
+  ),
+  AlertCircle: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
+    </svg>
+  ),
+};
+
+const C = {
+  bg: "#F2F2F7", card: "#FFFFFF", blue: "#007AFF", green: "#30D158",
+  red: "#FF3B30", orange: "#FF9F0A", textPrimary: "#1C1C1E",
+  textSecondary: "#6C6C70", separator: "#E5E5EA",
+};
+const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif";
+
+const SAMPLE_DATA = `01/15/2026  NETFLIX.COM               -15.99
+02/15/2026  NETFLIX.COM               -15.99
+03/15/2026  NETFLIX.COM               -17.99
+04/15/2026  NETFLIX.COM               -17.99
+01/03/2026  SPOTIFY USA               -10.99
+02/03/2026  SPOTIFY USA               -10.99
+03/03/2026  SPOTIFY USA               -10.99
+04/03/2026  SPOTIFY USA               -10.99
+01/07/2026  ADOBE CREATIVE CLOUD      -54.99
+02/07/2026  ADOBE CREATIVE CLOUD      -54.99
+03/07/2026  ADOBE CREATIVE CLOUD      -54.99
+04/07/2026  ADOBE CREATIVE CLOUD      -54.99
+01/11/2026  PLANET FITNESS #4021      -24.99
+02/11/2026  PLANET FITNESS #4021      -24.99
+03/11/2026  PLANET FITNESS #4021      -24.99
+04/11/2026  PLANET FITNESS #4021      -24.99
+01/20/2026  HULU                       -7.99
+02/20/2026  HULU                       -7.99
+03/20/2026  HULU                       -12.99
+04/20/2026  HULU                       -12.99
+01/02/2026  CALM.COM SUBSCRIPTION     -14.99
+02/02/2026  CALM.COM SUBSCRIPTION     -14.99
+03/02/2026  CALM.COM SUBSCRIPTION     -14.99
+04/02/2026  CALM.COM SUBSCRIPTION     -14.99
+01/09/2026  TRADER JOES #442          -63.10
+01/18/2026  SHELL OIL 3921            -41.02
+02/05/2026  AMAZON MKTPLACE           -22.40
+02/14/2026  UBER TRIP                 -18.75
+03/09/2026  TRADER JOES #442          -58.30
+03/22/2026  CHIPOTLE ONLINE           -14.20
+04/01/2026  RENT PAYMENT           -1850.00
+02/01/2026  RENT PAYMENT           -1850.00
+03/01/2026  RENT PAYMENT           -1850.00
+01/01/2026  RENT PAYMENT           -1850.00`;
+
+function LeakFinder() {
+  const [screen, setScreen] = useState("input");
+  const [rawText, setRawText] = useState("");
+  const [result, setResult] = useState(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+  const [copiedIdx, setCopiedIdx] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  async function analyze() {
+    if (!rawText.trim()) return;
+    setScreen("loading");
+    setErrorMsg("");
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: rawText }),
+      });
+
+      const parsed = await response.json();
+      if (!response.ok || parsed.error) throw new Error(parsed.error || "Request failed");
+      if (!parsed.items || !Array.isArray(parsed.items)) throw new Error("Malformed response");
+
+      setResult(parsed);
+      setUnlocked(false);
+      setExpanded(null);
+      setScreen("results");
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setErrorMsg("Couldn't analyze that data. Try pasting a longer statement export, or try the sample data.");
+      setScreen("error");
+    }
+  }
+
+  function copyScript(idx, script) {
+    navigator.clipboard.writeText(script).catch(() => {});
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 1600);
+  }
+
+  const confColor = (conf) => (conf === "high" ? C.red : conf === "medium" ? C.orange : C.textSecondary);
+
+  return (
+    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: FONT }}>
+      <div style={{ height: "env(safe-area-inset-top, 0px)", background: C.bg }} />
+      <div style={{ minHeight: "100vh", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+        {screen === "input" && <InputScreen rawText={rawText} setRawText={setRawText} onAnalyze={analyze} />}
+        {screen === "loading" && <LoadingScreen />}
+        {screen === "error" && <ErrorScreen message={errorMsg} onBack={() => setScreen("input")} />}
+        {screen === "results" && result && (
+          <ResultsScreen result={result} unlocked={unlocked} setUnlocked={setUnlocked}
+            expanded={expanded} setExpanded={setExpanded} copiedIdx={copiedIdx}
+            copyScript={copyScript} confColor={confColor} onBack={() => setScreen("input")} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NavTitle({ children, onBack }) {
+  return (
+    <div style={{ padding: "20px 20px 4px" }}>
+      {onBack && (
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", color: C.blue, fontSize: 17, padding: "6px 0", marginBottom: 2 }}>
+          <Icon.ArrowLeft size={18} /> Back
+        </button>
+      )}
+      <div style={{ fontSize: 34, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.5 }}>{children}</div>
+    </div>
+  );
+}
+
+function InputScreen({ rawText, setRawText, onAnalyze }) {
+  return (
+    <div>
+      <NavTitle>Leak Finder</NavTitle>
+      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 15, marginTop: 4, lineHeight: 1.4 }}>
+        Paste 3–6 months of transactions from your bank or card export. We'll find what's quietly recurring.
+      </p>
+      <div style={{ padding: "16px 20px" }}>
+        <textarea value={rawText} onChange={(e) => setRawText(e.target.value)}
+          placeholder="Paste your transaction history here..."
+          style={{ width: "100%", height: 220, borderRadius: 16, border: `1px solid ${C.separator}`, background: C.card, padding: 14, fontSize: 14, color: C.textPrimary, fontFamily: "ui-monospace, SFMono-Regular, monospace", resize: "none", outline: "none" }} />
+      </div>
+      <div style={{ padding: "0 20px" }}>
+        <button onClick={() => setRawText(SAMPLE_DATA)}
+          style={{ width: "100%", background: C.card, border: `1px solid ${C.separator}`, borderRadius: 14, padding: "13px 0", fontSize: 16, fontWeight: 600, color: C.blue, marginBottom: 10 }}>
+          Try sample data
+        </button>
+        <button onClick={onAnalyze} disabled={!rawText.trim()}
+          style={{ width: "100%", background: rawText.trim() ? C.blue : "#B9DBFF", border: "none", borderRadius: 14, padding: "15px 0", fontSize: 17, fontWeight: 700, color: "#fff" }}>
+          Find My Leaks
+        </button>
+      </div>
+      <div style={{ padding: "20px 20px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <Icon.Lock size={14} color={C.textSecondary} />
+        <span style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.4 }}>Nothing is stored. Your data is analyzed once and discarded.</span>
+      </div>
+    </div>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div style={{ height: "80vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
+      <div style={{ animation: "spin 1s linear infinite" }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={C.blue} strokeWidth="2.5" strokeLinecap="round">
+          <path d="M21 12a9 9 0 1 1-9-9" />
+        </svg>
+      </div>
+      <div style={{ fontSize: 16, fontWeight: 600, color: C.textPrimary }}>Scanning for leaks…</div>
+    </div>
+  );
+}
+
+function ErrorScreen({ message, onBack }) {
+  return (
+    <div style={{ padding: "60px 24px", textAlign: "center" }}>
+      <div style={{ marginBottom: 12 }}><Icon.AlertCircle size={36} color={C.red} /></div>
+      <div style={{ fontSize: 17, fontWeight: 600, color: C.textPrimary, marginBottom: 6 }}>Something went wrong</div>
+      <div style={{ fontSize: 14, color: C.textSecondary, marginBottom: 20, lineHeight: 1.5 }}>{message}</div>
+      <button onClick={onBack} style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 14, padding: "13px 28px", fontSize: 16, fontWeight: 700 }}>Try again</button>
+    </div>
+  );
+}
+
+function Ring({ pct, size = 132 }) {
+  const stroke = 12, r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  const offset = c - (Math.min(pct, 100) / 100) * c;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} stroke="#FFFFFF55" strokeWidth={stroke} fill="none" />
+      <circle cx={size / 2} cy={size / 2} r={r} stroke="#fff" strokeWidth={stroke} fill="none"
+        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, confColor, onBack }) {
+  const visibleItems = unlocked ? result.items : result.items.slice(0, 1);
+  const lockedCount = result.items.length - visibleItems.length;
+
+  return (
+    <div>
+      <NavTitle onBack={onBack}>Your Report</NavTitle>
+      <div style={{ margin: "12px 20px 20px" }}>
+        <div style={{ background: `linear-gradient(135deg, ${C.blue}, #4DA3FF)`, borderRadius: 24, padding: 24, display: "flex", alignItems: "center", gap: 18, boxShadow: "0 8px 24px rgba(0,122,255,0.35)" }}>
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <Ring pct={72} />
+            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon.Sparkles size={20} color="#fff" />
+            </div>
+          </div>
+          <div>
+            <div style={{ color: "#EAF3FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
+            <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>${result.totalAnnual?.toLocaleString()}</div>
+            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · ${result.totalMonthly?.toLocaleString()}/mo</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: "0 20px" }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.textSecondary, marginBottom: 8, marginLeft: 4 }}>RECURRING CHARGES</div>
+        <div style={{ background: C.card, borderRadius: 16, overflow: "hidden" }}>
+          {visibleItems.map((item, i) => (
+            <div key={i}>
+              <button onClick={() => setExpanded(expanded === i ? null : i)}
+                style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: confColor(item.confidence), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{item.confidence}</span>
+                  </div>
+                  <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
+                    ${item.amount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
+                  </span>
+                  <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                </div>
+              </button>
+              {expanded === i && (
+                <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                  <div style={{ background: C.bg, borderRadius: 12, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
+                  <button onClick={() => copyScript(i, item.cancellationScript)}
+                    style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
+                    {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
+                    {copiedIdx === i ? "Copied" : "Copy script"}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {!unlocked && lockedCount > 0 && (
+            <div style={{ padding: 16 }}>
+              {Array.from({ length: Math.min(lockedCount, 3) }).map((_, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.6, userSelect: "none" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>••••••• •••••</div>
+                  <div style={{ fontSize: 15, fontWeight: 700 }}>$••.••</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {!unlocked && lockedCount > 0 && (
+        <div style={{ padding: "16px 20px 0" }}>
+          <button onClick={() => setUnlocked(true)}
+            style={{ width: "100%", background: C.textPrimary, border: "none", borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#FFD60A", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon.Lock size={17} color="#1C1C1E" />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Unlock {lockedCount} more {lockedCount === 1 ? "leak" : "leaks"}</div>
+                <div style={{ color: "#9A9AA0", fontSize: 12 }}>Full list + cancellation scripts</div>
+              </div>
+            </div>
+            <div style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>$9</div>
+          </button>
+          <div style={{ textAlign: "center", fontSize: 11, color: C.textSecondary, marginTop: 8 }}>One-time unlock for this report · demo only, no real charge</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
+</script>
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>
