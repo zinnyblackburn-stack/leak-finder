@@ -574,20 +574,42 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       {!unlocked && lockedCount > 0 && (
         <div style={{ padding: "16px 20px 0" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, marginBottom: 10, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>Unlock Everything</div>
+
+          <button onClick={() => setUnlocked(true)} className="glass"
+            style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ color: C.textPrimary, fontSize: 15, fontWeight: 700 }}>Unlock this report</div>
+              <div style={{ color: C.textSecondary, fontSize: 12 }}>One-time · all leaks, scripts & metrics</div>
+            </div>
+            <div style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800 }}>$9</div>
+          </button>
+
           <button onClick={() => setUnlocked(true)}
-            style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 10px 28px rgba(10,132,255,0.4)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon.Lock size={17} color="#fff" />
-              </div>
+            style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "16px 18px", position: "relative", boxShadow: "0 10px 28px rgba(10,132,255,0.4)", marginBottom: 10 }}>
+            <div style={{ position: "absolute", top: -9, left: 18, background: "#FFD60A", color: "#1C1C1E", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 8, letterSpacing: 0.3 }}>BEST VALUE</div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ textAlign: "left" }}>
-                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Unlock your full report</div>
-                <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>All leaks, scripts & financial health metrics</div>
+                <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Monthly membership</div>
+                <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12 }}>Every future report unlocked, cheaper than one-off</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ color: "#fff", fontSize: 18, fontWeight: 800 }}>$6.99</div>
+                <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>/month</div>
               </div>
             </div>
-            <div style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>$9</div>
           </button>
-          <div style={{ textAlign: "center", fontSize: 11, color: C.textSecondary, marginTop: 8 }}>One-time unlock for this report · demo only, no real charge</div>
+
+          <button onClick={() => setUnlocked(true)} className="glass"
+            style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ color: C.textPrimary, fontSize: 15, fontWeight: 700 }}>Share Pack — 2 unlocks</div>
+              <div style={{ color: C.textSecondary, fontSize: 12 }}>One for you, one for a friend · save $3</div>
+            </div>
+            <div style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800 }}>$15</div>
+          </button>
+
+          <div style={{ textAlign: "center", fontSize: 11, color: C.textSecondary, marginTop: 10 }}>Demo only, no real charge yet</div>
         </div>
       )}
     </div>
