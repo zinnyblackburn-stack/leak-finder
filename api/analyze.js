@@ -122,7 +122,17 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       });
     }
 
-    const cleaned = textBlock.text.trim().replace(/^```json|^```|```$/g, "").trim();
+    let cleaned = textBlock.text.trim();
+    // Extract just the JSON object, even if the model added stray commentary
+    // before or after it (defense in depth — the prompt already asks for JSON
+    // only, but we shouldn't depend on perfect compliance every time).
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    } else {
+      cleaned = cleaned.replace(/^```json|^```|```$/g, "").trim();
+    }
 
     let parsed;
     try {
