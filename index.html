@@ -223,8 +223,11 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
   return (
     <div>
       <div style={{ padding: "24px 20px 4px" }}>
-        <div style={{ fontSize: 29, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6, lineHeight: 1.15 }}>Save More Without Earning More</div>
-        <div style={{ fontSize: 16, fontWeight: 700, color: C.blue, marginTop: 8 }}>Know Your Money. Grow Your Wealth.</div>
+        <div style={{ fontSize: 27, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.5, lineHeight: 1.2 }}>
+          <div>Save More</div>
+          <div>Without Earning More</div>
+        </div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.blue, marginTop: 10 }}>Know Your Money. Grow Your Wealth.</div>
       </div>
       <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 14.5, marginTop: 10, lineHeight: 1.55 }}>
         Paste 3–6 months of your bank or card transaction history and let our AI do the rest. You'll receive a detailed, easy-to-understand report revealing where your money goes, what's quietly costing you every month, your Financial Health Score, and personalised insights designed to help you save more money and grow your wealth.
@@ -363,7 +366,6 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
   const isVariableIncome = result.incomeSteadiness === "variable";
-  const manyLeaks = result.itemCount >= 5;
 
   const fmt = (n) => Math.round(n).toLocaleString();
 
@@ -371,36 +373,89 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
     <div style={{ paddingBottom: 24 }}>
       <NavTitle onBack={onBack}>Your Report</NavTitle>
 
-      {manyLeaks && (
-        <div style={{ margin: "0 20px 14px", padding: "13px 16px", borderRadius: 18, background: "rgba(255,69,58,0.14)", border: "1px solid rgba(255,69,58,0.4)", display: "flex", alignItems: "center", gap: 10 }}>
-          <Icon.AlertTriangle size={20} color={C.red} />
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#FFD4D0" }}>
-            {result.itemCount} recurring payments (potential leaks)
-          </div>
-        </div>
-      )}
-
       <div style={{ margin: "0 20px 12px" }}>
         <div className="glass" style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, borderRadius: 26, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ position: "relative", flexShrink: 0, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(10,132,255,0.5)" }}>
             <Icon.Sparkles size={26} color="#fff" />
           </div>
           <div>
-            <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
+            <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>YEARLY RECURRING COSTS</div>
             <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString()}</div>
-            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{fmt(result.totalMonthly)}/mo</div>
+            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring payments · {cur}{fmt(result.totalMonthly)}/mo</div>
+          </div>
+        </div>
+      </div>
+
+      {hasIncome && (
+        <div style={{ margin: "0 20px 12px" }}>
+          <div className="glass" style={{ borderRadius: 20, padding: "16px 18px" }}>
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Monthly Income</div>
+            <div style={{ fontSize: 27, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ margin: "0 20px 20px" }}>
+        <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10, background: "rgba(255,69,58,0.10)", border: "1px solid rgba(255,69,58,0.35)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <Icon.AlertTriangle size={18} color={C.red} />
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#FFD4D0" }}>{result.itemCount} recurring payments (potential leaks)</span>
+          </div>
+          <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.15)" }}>
+            {visibleItems.map((item, i) => (
+              <div key={i}>
+                <button onClick={() => setExpanded(expanded === i ? null : i)}
+                  style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: confColor(item.confidence), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{item.confidence}</span>
+                    </div>
+                    <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
+                        {cur}{item.lastAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
+                      </div>
+                      <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>this month</div>
+                      <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>avg/mo: {cur}{item.avgAmount}</div>
+                    </div>
+                    <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                  </div>
+                </button>
+                {expanded === i && (
+                  <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
+                    <button onClick={() => copyScript(i, item.cancellationScript)}
+                      style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
+                      {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
+                      {copiedIdx === i ? "Copied" : "Copy script"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+            {!unlocked && lockedCount > 0 && (
+              <div style={{ padding: 16 }}>
+                {Array.from({ length: lockedCount }).map((_, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.5, userSelect: "none" }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>••••••• •••••</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>{cur}••.••</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ fontSize: 12.5, color: "#F0D9D6", marginTop: 12, lineHeight: 1.5 }}>
+            Not every recurring payment is a leak. Keep what adds value, and cancel anything you don't recognise or don't need anymore.
           </div>
         </div>
       </div>
 
       {hasIncome && (
         <div style={{ margin: "0 20px 20px" }}>
-          <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10 }}>
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Monthly Income</div>
-            <div style={{ fontSize: 27, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
-          </div>
-
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "18px 4px 8px", textTransform: "uppercase", letterSpacing: 0.4 }}>Financial Health</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "6px 4px 8px", textTransform: "uppercase", letterSpacing: 0.4 }}>Financial Health</div>
 
           {isVariableIncome && (
             <div className="glass" style={{ margin: "0 0 10px", padding: "12px 14px", borderRadius: 16, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
@@ -522,63 +577,6 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           )}
         </div>
       )}
-
-      <div className="glass" style={{ margin: "0 20px 16px", padding: "12px 14px", borderRadius: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <Icon.Sparkles size={15} color={C.blue} />
-        <span style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
-          Not everything below is a leak — some may be subscriptions you're happy to keep. Use this list to decide what's still worth it, and cancel anything you don't recognize or don't use anymore.
-        </span>
-      </div>
-
-      <div style={{ padding: "0 20px" }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: C.textSecondary, marginBottom: 8, marginLeft: 4 }}>RECURRING CHARGES</div>
-        <div className="glass" style={{ borderRadius: 20, overflow: "hidden" }}>
-          {visibleItems.map((item, i) => (
-            <div key={i}>
-              <button onClick={() => setExpanded(expanded === i ? null : i)}
-                style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: confColor(item.confidence), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{item.confidence}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                      {cur}{item.lastAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
-                    </div>
-                    <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>this month</div>
-                    <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>avg/mo: {cur}{item.avgAmount}</div>
-                  </div>
-                  <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-                </div>
-              </button>
-              {expanded === i && (
-                <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                  <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
-                  <button onClick={() => copyScript(i, item.cancellationScript)}
-                    style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
-                    {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
-                    {copiedIdx === i ? "Copied" : "Copy script"}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-          {!unlocked && lockedCount > 0 && (
-            <div style={{ padding: 16 }}>
-              {Array.from({ length: lockedCount }).map((_, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.5, userSelect: "none" }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>••••••• •••••</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>{cur}••.••</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
 
       {!unlocked && lockedCount > 0 && (
         <div style={{ padding: "16px 20px 0" }}>
