@@ -397,9 +397,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       <div style={{ margin: "0 20px 20px" }}>
         <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10, background: "rgba(255,69,58,0.10)", border: "1px solid rgba(255,69,58,0.35)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <Icon.AlertTriangle size={18} color={C.red} />
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#FFD4D0" }}>{result.itemCount} recurring payments (potential leaks)</span>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 16 }}>⚠️</span>
+            <span style={{ fontSize: 13.5, fontWeight: 700, color: "#FFD4D0", lineHeight: 1.4 }}>Some payments below have been flagged for review. Make sure you recognise each one and cancel anything you no longer need.</span>
           </div>
           <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.15)" }}>
             {visibleItems.map((item, i) => (
@@ -437,18 +437,18 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             ))}
             {!unlocked && lockedCount > 0 && (
-              <div style={{ padding: 16 }}>
-                {Array.from({ length: lockedCount }).map((_, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.5, userSelect: "none" }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>••••••• •••••</div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>{cur}••.••</div>
-                  </div>
-                ))}
-              </div>
+              <button onClick={() => setUnlocked(true)}
+                style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.04)", border: "none", textAlign: "left" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Icon.Lock size={14} color="#FFD4D0" />
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: "#FFD4D0" }}>{lockedCount} more recurring {lockedCount === 1 ? "payment" : "payments"} locked</span>
+                </div>
+                <Icon.ChevronDown size={16} color="#FFD4D0" style={{ transform: "rotate(-90deg)" }} />
+              </button>
             )}
           </div>
           <div style={{ fontSize: 12.5, color: "#F0D9D6", marginTop: 12, lineHeight: 1.5 }}>
-            Not every recurring payment is a leak. Keep what adds value, and cancel anything you don't recognise or don't need anymore.
+            Not every recurring payment is a leak. A good approach is to regularly review what you're paying for and only keep what still adds value.
           </div>
         </div>
       </div>
