@@ -5,62 +5,62 @@
 // Environment Variables, and add:
 //   ANTHROPIC_API_KEY = sk-ant-xxxxxxxx  (get one at console.anthropic.com)
 // Then redeploy so the function can see it.
- 
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
- 
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return res.status(500).json({
       error: "Server is missing ANTHROPIC_API_KEY. Add it in your hosting provider's environment variables and redeploy.",
     });
   }
- 
+
   const { text } = req.body || {};
   if (!text || typeof text !== "string") {
     return res.status(400).json({ error: "Missing 'text' in request body" });
   }
- 
+
   const systemPrompt = `You are a financial analysis engine embedded in an app. You will receive raw pasted bank or credit card transaction data spanning multiple months, in any messy format (CSV-like, spaced columns, copy-pasted text), in any currency.
- 
+
 STEP 1 — Detect the currency used in the data. Look carefully for currency symbols (€, £, $, ¥, etc.) ANYWHERE in the text, or 3-letter currency codes (EUR, GBP, USD, CHF, etc.), or country-specific formatting hints (comma vs period as decimal separator). Return the correct symbol as "currencySymbol" (e.g. "$", "€", "£"). Only default to "$" if there is truly zero indication of any other currency anywhere in the text — do not default to "$" just because the amounts look like plain numbers.
- 
+
 STEP 2 — Identify INCOME: every incoming (positive-amount / credit / deposit) transaction, UNLESS it is clearly a refund, reversal, or return tied to one of the user's own prior purchases (look for words like "refund", "devolución", "reversal", "chargeback", "reembolso", "devoluciones"). This includes salary/payroll, freelance or client payments, and peer-to-peer transfers (Bizum, Venmo, PayPal, etc.) received from other people — include ALL of these individually in "incomeSources", even if they come from many different people or vary in amount. Do not use subjective judgment about whether a transfer "feels like" real income — the only exclusion is explicit refunds/reversals. Compute "monthlyIncome" as the total of all included income divided by the number of distinct months present in the data.
- 
+
 Also determine "incomeSteadiness": return "steady" if income comes from one consistent, regularly-repeating source (e.g. a single employer's payroll), or "variable" if it comes from multiple different people/clients, freelance work, or amounts that differ significantly — this matters because variable income makes percentage estimates rougher.
- 
+
 STEP 2b — If the data includes a running account balance after each transaction, find the balance value on the chronologically OLDEST transaction row and the chronologically NEWEST transaction row in the data (check dates carefully — statements are often listed newest-first). Report these as "startingBalance" (oldest) and "endingBalance" (newest). If no balance column exists in the data, return both as null.
- 
+
 CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges.
- 
+
 STEP 3 — Compute "monthlySpending": the average total of ALL outgoing transactions per month across the whole period (everything that isn't income) — this gives an overall spending picture, independent of the leaks list. Compute this carefully by actually dividing total outgoing spend by the number of distinct months present in the data.
- 
+
 STEP 3b — Split that same spending into two categories and report their average monthly totals:
 - "monthlyEssential": necessities — groceries, utilities, transport/fuel, insurance, rent/mortgage, essential bills
 - "monthlyDiscretionary": everything else optional — dining out, entertainment, shopping, subscriptions, hobbies
 These two numbers should roughly add up to "monthlySpending".
- 
+
 STEP 3c — Identify the single spending category with the highest total spend across the whole period (e.g. "Groceries", "Dining Out", "Shopping", "Transport"). Report "largestCategoryName" and "largestCategoryTotal" (the total amount spent in that category across the entire period provided, not monthly average).
- 
+
 STEP 4 — Identify RECURRING or SUBSCRIPTION-like DISCRETIONARY charges only — same or near-identical merchant name appearing at a roughly regular interval (weekly/monthly/annual), OR a well-known subscription merchant (streaming, software, gym, apps, etc.).
- 
+
 EXCLUDE from "items" entirely:
 - Rent, mortgage, or other large fixed housing obligations
 - Essential utility/service bills: electricity, water, gas, internet, phone/mobile, insurance — these are known necessary bills, not forgettable waste, even though they recur
 - One-off purchases that only coincidentally share a merchant (require genuine regular-interval repetition to qualify)
 - Travel bookings — flights, hotels, car rentals, airlines, travel agencies — even if the same travel merchant appears more than once in the period. These are trip-driven purchases, not subscriptions, and should never appear in "items" regardless of how many times they occur.
- 
+
 Discretionary subscriptions should still be included even if the user obviously knows about and actively wants some of them (e.g. a gym they use) — flagging is about visibility and letting the user decide, not accusing them of a mistake.
- 
+
 IMPORTANT — variable-amount charges: some recurring charges (e.g. ad platforms, usage-based tools) charge a DIFFERENT amount each cycle. For every item, report BOTH:
 - "avgAmount": the average charge amount across all occurrences found in the data
 - "lastAmount": the amount of the single most recent (latest-dated) occurrence
 If every occurrence was the same amount, avgAmount and lastAmount will simply be equal — that's fine.
- 
+
 Limit "items" to at most 8 entries maximum, prioritizing highest-confidence items and largest annual cost first.
- 
+
 Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text, matching exactly this schema:
 {
   "currencySymbol": string,
@@ -90,7 +90,7 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
 }
 If no recurring income is identifiable, return "monthlyIncome": 0 and an empty "incomeSources" array — do not guess or fabricate income.
 Do NOT include totals, sums, or item counts in your response — only the raw items and income sources listed above. Sort "items" by confidence (high first), then by average annual cost descending.`;
- 
+
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -102,19 +102,18 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       body: JSON.stringify({
         model: "claude-sonnet-5",
         max_tokens: 8192,
-        temperature: 0,
         thinking: { type: "disabled" },
         system: systemPrompt,
         messages: [{ role: "user", content: text }],
       }),
     });
- 
+
     if (!response.ok) {
       const errText = await response.text();
       console.error("Anthropic API error:", errText);
       return res.status(502).json({ error: `Claude API request failed: ${errText.slice(0, 300)}` });
     }
- 
+
     const data = await response.json();
     const textBlock = (data.content || []).find((b) => b.type === "text");
     if (!textBlock) {
@@ -123,7 +122,7 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
         error: `No text in Claude response. stop_reason: ${data.stop_reason}. content types: ${(data.content || []).map(b => b.type).join(",") || "empty"}. usage: ${JSON.stringify(data.usage)}`,
       });
     }
- 
+
     let cleaned = textBlock.text.trim();
     // Extract just the JSON object, even if the model added stray commentary
     // before or after it (defense in depth — the prompt already asks for JSON
@@ -135,7 +134,7 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
     } else {
       cleaned = cleaned.replace(/^```json|^```|```$/g, "").trim();
     }
- 
+
     let parsed;
     try {
       parsed = JSON.parse(cleaned);
@@ -145,7 +144,7 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
         error: `Response wasn't valid JSON (likely cut off). Stop reason: ${data.stop_reason}. First 200 chars: ${cleaned.slice(0, 200)}`,
       });
     }
- 
+
     // Compute totals deterministically from the item list itself, rather than
     // trusting the model's own arithmetic — guarantees the totals always match
     // exactly what's shown, and removes a source of run-to-run inconsistency.
@@ -154,10 +153,10 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       if (frequency === "annual") return amount / 12;
       return amount; // monthly, or fallback
     };
- 
+
     const items = Array.isArray(parsed.items) ? parsed.items : [];
     const totalMonthly = items.reduce((sum, item) => sum + toMonthly(item.avgAmount || 0, item.frequency), 0);
- 
+
     const result = {
       ...parsed,
       items,
@@ -165,11 +164,10 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       totalAnnual: Math.round(totalMonthly * 12 * 100) / 100,
       itemCount: items.length,
     };
- 
+
     return res.status(200).json(result);
   } catch (err) {
     console.error("Server error:", err);
     return res.status(500).json({ error: `Failed to analyze data: ${err.message}` });
   }
 }
- 
