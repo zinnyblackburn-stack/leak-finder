@@ -226,23 +226,26 @@ function NavTitle({ children, onBack }) {
 function InputScreen({ rawText, setRawText, onAnalyze }) {
   return (
     <div>
-      <div style={{ padding: "44px 14px 0", textAlign: "center" }}>
+      <div style={{ padding: "44px 10px 0", textAlign: "center" }}>
         <div style={{
           fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
-          fontSize: "clamp(17px, 8cqw, 30px)",
-          lineHeight: 1,
-          letterSpacing: 1,
-          whiteSpace: "nowrap",
+          fontSize: 42,
+          lineHeight: 0.95,
+          letterSpacing: 2,
           color: "#fff",
-          filter: "drop-shadow(0 4px 18px rgba(10,132,255,0.35))",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #BFD6FF 100%)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          filter: "drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
         }}>
-          Save More Without Earning More
+          MONEY LEAK DETECTOR
         </div>
-        <div style={{ fontSize: 12.5, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 2.6, textTransform: "uppercase", marginTop: 18 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 1, textTransform: "uppercase", marginTop: 18, whiteSpace: "nowrap", textAlign: "center" }}>
           Know Your Money · Grow Your Wealth
         </div>
       </div>
-      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 14.5, marginTop: 24, lineHeight: 1.55 }}>
+      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13.5, marginTop: 24, lineHeight: 1.5 }}>
         Paste 3–6 months of your bank or card transaction history and let our AI do the rest. You'll receive a detailed, easy-to-understand report revealing where your money goes, what's quietly costing you every month, your Financial Health Score, and personalised insights designed to help you save more money and grow your wealth.
       </p>
       <div style={{ padding: "16px 20px" }}>
@@ -258,7 +261,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         </button>
         <button onClick={onAnalyze} disabled={!rawText.trim()}
           style={{ width: "100%", background: rawText.trim() ? `linear-gradient(135deg, ${C.blue}, ${C.purple})` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "16px 0", fontSize: 17, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
-          Find My Leaks
+          Find My Leaks - Save My Money
         </button>
       </div>
       <div style={{ padding: "20px 20px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
@@ -398,8 +401,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </div>
           <div>
             <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>YEARLY RECURRING COSTS</div>
-            <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString()}</div>
-            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring payments · {cur}{fmt(result.totalMonthly)}/mo</div>
+            <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring payments · {cur}{result.totalMonthly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</div>
           </div>
         </div>
       </div>
