@@ -81,7 +81,11 @@ const C = {
 };
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif";
 
-const SAMPLE_DATA = `01/15/2026  NETFLIX.COM               -15.99
+const SAMPLE_DATA = `01/28/2026  ACME CORP PAYROLL         +3200.00
+02/28/2026  ACME CORP PAYROLL         +3200.00
+03/28/2026  ACME CORP PAYROLL         +3200.00
+04/28/2026  ACME CORP PAYROLL         +3200.00
+01/15/2026  NETFLIX.COM               -15.99
 02/15/2026  NETFLIX.COM               -15.99
 03/15/2026  NETFLIX.COM               -17.99
 04/15/2026  NETFLIX.COM               -17.99
@@ -328,6 +332,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const discretionaryPct = hasIncome && result.monthlyDiscretionary != null ? (result.monthlyDiscretionary / result.monthlyIncome) * 100 : null;
   const essentialPct = hasIncome && result.monthlyEssential != null ? (result.monthlyEssential / result.monthlyIncome) * 100 : null;
   const score = hasIncome ? computeScore({ savingsRate, recurringPct, spendPct }) : null;
+  const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
+  const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
+  const isVariableIncome = result.incomeSteadiness === "variable";
 
   const fmt = (n) => Math.round(n).toLocaleString();
 
@@ -351,7 +358,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
       </div>
 
-      {hasIncome && (
+      {hasIncome ? (
         <div style={{ margin: "0 20px 20px" }}>
           <div style={{ background: C.card, borderRadius: 18, padding: "16px 18px", marginBottom: 10 }}>
             <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Monthly Income</div>
@@ -359,6 +366,28 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </div>
 
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "18px 4px 8px", textTransform: "uppercase", letterSpacing: 0.3 }}>Financial Health</div>
+
+          {isVariableIncome && (
+            <div style={{ margin: "0 0 10px", padding: "12px 14px", background: "#FFF4E5", borderRadius: 14, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
+              Your income looks variable (freelance or client payments rather than a fixed salary), so the percentages below are estimates and may not capture your full financial picture. The balance change below is exact, since it's calculated directly from your statement.
+            </div>
+          )}
+
+          {hasBalanceCheck && (
+            <div style={{ background: C.card, borderRadius: 18, padding: "16px 18px", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Balance Change (this period)</div>
+              <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2 }}>(exact — calculated directly from your statement, not estimated)</div>
+              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8, color: balanceChange >= 0 ? C.green : C.red, filter: unlocked ? "none" : "blur(8px)" }}>
+                {balanceChange >= 0 ? "+" : "-"}{cur}{Math.abs(balanceChange).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </div>
+              {!unlocked && (
+                <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, background: "none", border: "none", padding: 0 }}>
+                  <Icon.Lock size={12} color={C.blue} />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <StatCard
             label="Savings Rate"
@@ -449,6 +478,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div style={{ margin: "0 20px 20px", padding: "16px 18px", background: C.card, borderRadius: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>Financial Health metrics unavailable</div>
+          <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>
+            We couldn't identify a clear recurring income deposit (like a salary) in this statement, so savings rate and spending percentages can't be calculated. Try uploading a longer statement (3+ months) that includes your regular income deposits.
+          </div>
         </div>
       )}
 
