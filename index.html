@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <title>Leak Finder</title>
 
-<!-- PWA / installability -->
 <link rel="manifest" href="./manifest.json" />
-<meta name="theme-color" content="#007AFF" />
+<meta name="theme-color" content="#0A0A0C" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -16,12 +15,27 @@
 <link rel="icon" href="./icon-192.png" />
 
 <style>
-  html, body { margin: 0; padding: 0; background: #1C1C1E; overscroll-behavior: none; }
+  html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   button { cursor: pointer; font-family: inherit; }
   textarea { font-family: inherit; }
   #root { min-height: 100vh; display: flex; justify-content: center; }
-  .app-shell { width: 100%; max-width: 480px; min-height: 100vh; background: var(--app-bg, #F2F2F7); }
+  .app-shell {
+    width: 100%; max-width: 480px; min-height: 100vh;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(94,92,230,0.20), transparent 45%),
+      radial-gradient(circle at 100% 10%, rgba(10,132,255,0.16), transparent 40%),
+      radial-gradient(circle at 50% 100%, rgba(94,92,230,0.10), transparent 50%),
+      #050507;
+  }
+  .glass {
+    background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    backdrop-filter: blur(28px) saturate(160%);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+  }
+  ::placeholder { color: #6E6E76; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
 
@@ -35,7 +49,6 @@
 <script type="text/babel" data-presets="react">
 const { useState } = React;
 
-// ---- lightweight inline icons (no external icon lib needed) ----
 const Icon = {
   Lock: (p) => (
     <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,12 +85,23 @@ const Icon = {
       <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
     </svg>
   ),
+  AlertTriangle: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+    </svg>
+  ),
 };
 
 const C = {
-  bg: "#F2F2F7", card: "#FFFFFF", blue: "#007AFF", green: "#30D158",
-  red: "#FF3B30", orange: "#FF9F0A", textPrimary: "#1C1C1E",
-  textSecondary: "#6C6C70", separator: "#E5E5EA",
+  blue: "#0A84FF",
+  purple: "#5E5CE6",
+  green: "#30D158",
+  red: "#FF453A",
+  orange: "#FF9F0A",
+  textPrimary: "#F5F5F7",
+  textSecondary: "#98989D",
+  separator: "rgba(255,255,255,0.10)",
+  panelSolid: "#0B0B10",
 };
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif";
 
@@ -143,11 +167,9 @@ function LeakFinder() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: rawText }),
       });
-
       const parsed = await response.json();
       if (!response.ok || parsed.error) throw new Error(parsed.error || "Request failed");
       if (!parsed.items || !Array.isArray(parsed.items)) throw new Error("Malformed response");
-
       setResult(parsed);
       setUnlocked(false);
       setExpanded(null);
@@ -168,8 +190,8 @@ function LeakFinder() {
   const confColor = (conf) => (conf === "high" ? C.red : conf === "medium" ? C.orange : C.textSecondary);
 
   return (
-    <div className="app-shell" style={{ background: C.bg, fontFamily: FONT }}>
-      <div style={{ height: "env(safe-area-inset-top, 0px)", background: C.bg }} />
+    <div className="app-shell" style={{ fontFamily: FONT }}>
+      <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
       <div style={{ minHeight: "100vh", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         {screen === "input" && <InputScreen rawText={rawText} setRawText={setRawText} onAnalyze={analyze} />}
         {screen === "loading" && <LoadingScreen />}
@@ -192,7 +214,7 @@ function NavTitle({ children, onBack }) {
           <Icon.ArrowLeft size={18} /> Back
         </button>
       )}
-      <div style={{ fontSize: 34, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.5 }}>{children}</div>
+      <div style={{ fontSize: 32, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6 }}>{children}</div>
     </div>
   );
 }
@@ -207,15 +229,16 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
       <div style={{ padding: "16px 20px" }}>
         <textarea value={rawText} onChange={(e) => setRawText(e.target.value)}
           placeholder="Paste your transaction history here..."
-          style={{ width: "100%", height: 220, borderRadius: 16, border: `1px solid ${C.separator}`, background: C.card, padding: 14, fontSize: 14, color: C.textPrimary, fontFamily: "ui-monospace, SFMono-Regular, monospace", resize: "none", outline: "none" }} />
+          className="glass"
+          style={{ width: "100%", height: 220, borderRadius: 20, padding: 14, fontSize: 14, color: C.textPrimary, fontFamily: "ui-monospace, SFMono-Regular, monospace", resize: "none", outline: "none" }} />
       </div>
       <div style={{ padding: "0 20px" }}>
-        <button onClick={() => setRawText(SAMPLE_DATA)}
-          style={{ width: "100%", background: C.card, border: `1px solid ${C.separator}`, borderRadius: 14, padding: "13px 0", fontSize: 16, fontWeight: 600, color: C.blue, marginBottom: 10 }}>
+        <button onClick={() => setRawText(SAMPLE_DATA)} className="glass"
+          style={{ width: "100%", borderRadius: 16, padding: "13px 0", fontSize: 16, fontWeight: 600, color: C.textPrimary, marginBottom: 10 }}>
           Try sample data
         </button>
         <button onClick={onAnalyze} disabled={!rawText.trim()}
-          style={{ width: "100%", background: rawText.trim() ? C.blue : "#B9DBFF", border: "none", borderRadius: 14, padding: "15px 0", fontSize: 17, fontWeight: 700, color: "#fff" }}>
+          style={{ width: "100%", background: rawText.trim() ? `linear-gradient(135deg, ${C.blue}, ${C.purple})` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "16px 0", fontSize: 17, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
           Find My Leaks
         </button>
       </div>
@@ -246,24 +269,11 @@ function ErrorScreen({ message, onBack }) {
       <div style={{ marginBottom: 12 }}><Icon.AlertCircle size={36} color={C.red} /></div>
       <div style={{ fontSize: 17, fontWeight: 600, color: C.textPrimary, marginBottom: 6 }}>Something went wrong</div>
       <div style={{ fontSize: 14, color: C.textSecondary, marginBottom: 20, lineHeight: 1.5 }}>{message}</div>
-      <button onClick={onBack} style={{ background: C.blue, color: "#fff", border: "none", borderRadius: 14, padding: "13px 28px", fontSize: 16, fontWeight: 700 }}>Try again</button>
+      <button onClick={onBack} style={{ background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, color: "#fff", border: "none", borderRadius: 14, padding: "13px 28px", fontSize: 16, fontWeight: 700 }}>Try again</button>
     </div>
   );
 }
 
-function Ring({ pct, size = 132 }) {
-  const stroke = 12, r = (size - stroke) / 2, c = 2 * Math.PI * r;
-  const offset = c - (Math.min(pct, 100) / 100) * c;
-  return (
-    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size / 2} cy={size / 2} r={r} stroke="#FFFFFF55" strokeWidth={stroke} fill="none" />
-      <circle cx={size / 2} cy={size / 2} r={r} stroke="#fff" strokeWidth={stroke} fill="none"
-        strokeDasharray={c} strokeDashoffset={offset} strokeLinecap="round" />
-    </svg>
-  );
-}
-
-// ---- deterministic scoring helpers (all math done here, never trusted to the model) ----
 function bandColor(value, greenMax, yellowMax) {
   if (value <= greenMax) return C.green;
   if (value <= yellowMax) return C.orange;
@@ -297,12 +307,26 @@ function scoreDescription(score) {
   return band ? band[1] : SCORE_BANDS[SCORE_BANDS.length - 1][1];
 }
 
+function ScoreGauge({ score, color, size = 150, thickness = 14 }) {
+  const inner = size - thickness * 2;
+  const deg = Math.max(0, Math.min(360, score * 3.6));
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `conic-gradient(${color} ${deg}deg, rgba(255,255,255,0.08) ${deg}deg)`, boxShadow: `0 0 36px ${color}55` }} />
+      <div style={{ position: "absolute", top: thickness, left: thickness, width: inner, height: inner, borderRadius: "50%", background: C.panelSolid, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ fontSize: 34, fontWeight: 800, color: "#fff", filter: "none" }}>{score}</div>
+        <div style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>/ 100</div>
+      </div>
+    </div>
+  );
+}
+
 function StatCard({ label, subtitle, value, unlocked, color, description, onClick }) {
   return (
-    <button onClick={onClick} style={{ width: "100%", textAlign: "left", background: C.card, border: "none", borderRadius: 18, padding: "16px 18px", marginBottom: 10, cursor: unlocked ? "default" : "pointer", display: "block" }}>
-      <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>{label}</div>
-      {subtitle && <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2 }}>{subtitle}</div>}
-      <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8, color: unlocked ? color : C.textPrimary, filter: unlocked ? "none" : "blur(8px)" }}>
+    <button onClick={onClick} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "16px 18px", marginBottom: 10, cursor: unlocked ? "default" : "pointer", display: "block" }}>
+      <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
+      {subtitle && <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 3, opacity: 0.85 }}>{subtitle}</div>}
+      <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: unlocked ? color : C.textPrimary, filter: unlocked ? "none" : "blur(9px)" }}>
         {value}
       </div>
       {description && (
@@ -332,9 +356,11 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const discretionaryPct = hasIncome && result.monthlyDiscretionary != null ? (result.monthlyDiscretionary / result.monthlyIncome) * 100 : null;
   const essentialPct = hasIncome && result.monthlyEssential != null ? (result.monthlyEssential / result.monthlyIncome) * 100 : null;
   const score = hasIncome ? computeScore({ savingsRate, recurringPct, spendPct }) : null;
+  const scoreColor = score == null ? C.blue : score >= 70 ? C.green : score >= 40 ? C.orange : C.red;
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
   const isVariableIncome = result.incomeSteadiness === "variable";
+  const manyLeaks = result.itemCount >= 5;
 
   const fmt = (n) => Math.round(n).toLocaleString();
 
@@ -342,42 +368,48 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
     <div style={{ paddingBottom: 24 }}>
       <NavTitle onBack={onBack}>Your Report</NavTitle>
 
-      <div style={{ margin: "12px 20px 12px" }}>
-        <div style={{ background: `linear-gradient(135deg, ${C.blue}, #4DA3FF)`, borderRadius: 24, padding: 24, display: "flex", alignItems: "center", gap: 18, boxShadow: "0 8px 24px rgba(0,122,255,0.35)" }}>
-          <div style={{ position: "relative", flexShrink: 0 }}>
-            <Ring pct={72} />
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon.Sparkles size={20} color="#fff" />
-            </div>
+      {manyLeaks && (
+        <div style={{ margin: "0 20px 14px", padding: "13px 16px", borderRadius: 18, background: "rgba(255,69,58,0.14)", border: "1px solid rgba(255,69,58,0.4)", display: "flex", alignItems: "center", gap: 10 }}>
+          <Icon.AlertTriangle size={20} color={C.red} />
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#FFD4D0" }}>
+            {result.itemCount} recurring payments (potential leaks)
+          </div>
+        </div>
+      )}
+
+      <div style={{ margin: "0 20px 12px" }}>
+        <div className="glass" style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, borderRadius: 26, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ position: "relative", flexShrink: 0, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(10,132,255,0.5)" }}>
+            <Icon.Sparkles size={26} color="#fff" />
           </div>
           <div>
-            <div style={{ color: "#EAF3FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
+            <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>FOUND PER YEAR</div>
             <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString()}</div>
-            <div style={{ color: "#EAF3FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{fmt(result.totalMonthly)}/mo</div>
+            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring charges · {cur}{fmt(result.totalMonthly)}/mo</div>
           </div>
         </div>
       </div>
 
-      {hasIncome ? (
+      {hasIncome && (
         <div style={{ margin: "0 20px 20px" }}>
-          <div style={{ background: C.card, borderRadius: 18, padding: "16px 18px", marginBottom: 10 }}>
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Monthly Income</div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
+          <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10 }}>
+            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Monthly Income</div>
+            <div style={{ fontSize: 27, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
           </div>
 
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "18px 4px 8px", textTransform: "uppercase", letterSpacing: 0.3 }}>Financial Health</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "18px 4px 8px", textTransform: "uppercase", letterSpacing: 0.4 }}>Financial Health</div>
 
           {isVariableIncome && (
-            <div style={{ margin: "0 0 10px", padding: "12px 14px", background: "#FFF4E5", borderRadius: 14, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
-              Your income looks variable (freelance or client payments rather than a fixed salary), so the percentages below are estimates and may not capture your full financial picture. The balance change below is exact, since it's calculated directly from your statement.
+            <div className="glass" style={{ margin: "0 0 10px", padding: "12px 14px", borderRadius: 16, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
+              Your income includes freelance or client-style payments from multiple sources. We've also calculated an exact Balance Change below, taken directly from your statement, as a precise reality check alongside these figures.
             </div>
           )}
 
           {hasBalanceCheck && (
-            <div style={{ background: C.card, borderRadius: 18, padding: "16px 18px", marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Balance Change (this period)</div>
-              <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2 }}>(exact — calculated directly from your statement, not estimated)</div>
-              <div style={{ fontSize: 28, fontWeight: 800, marginTop: 8, color: balanceChange >= 0 ? C.green : C.red, filter: unlocked ? "none" : "blur(8px)" }}>
+            <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Balance Change (this period)</div>
+              <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(exact — calculated directly from your statement)</div>
+              <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: balanceChange >= 0 ? C.green : C.red, filter: unlocked ? "none" : "blur(9px)" }}>
                 {balanceChange >= 0 ? "+" : "-"}{cur}{Math.abs(balanceChange).toLocaleString(undefined, { maximumFractionDigits: 2 })}
               </div>
               {!unlocked && (
@@ -454,41 +486,36 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           )}
 
           {score != null && (
-            <div style={{ background: `linear-gradient(135deg, ${C.textPrimary}, #3A3A3C)`, borderRadius: 18, padding: "18px 18px", marginTop: 4 }}>
-              <div style={{ fontSize: 11, color: "#B8B8BD", fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase" }}>Financial Health Score</div>
-              <div style={{ fontSize: 34, fontWeight: 800, color: "#fff", marginTop: 6, filter: unlocked ? "none" : "blur(9px)" }}>
-                {score} <span style={{ fontSize: 16, fontWeight: 600, color: "#B8B8BD" }}>/ 100</span>
+            <div style={{ background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 24, padding: "22px 20px", marginTop: 6, display: "flex", alignItems: "center", gap: 18, boxShadow: `0 12px 32px rgba(0,0,0,0.5)` }}>
+              <div style={{ filter: unlocked ? "none" : "blur(10px)" }}>
+                <ScoreGauge score={score} color={scoreColor} />
               </div>
-              <div style={{ fontSize: 12.5, color: "#D5D5DA", marginTop: 10, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
-                {scoreDescription(score)}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Financial Health Score</div>
+                <div style={{ fontSize: 12.5, color: "#C7C7CC", marginTop: 8, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
+                  {scoreDescription(score)}
+                </div>
+                {!unlocked && (
+                  <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, background: "none", border: "none", padding: 0 }}>
+                    <Icon.Lock size={12} color="#FFD60A" />
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#FFD60A" }}>Tap to unlock</span>
+                  </button>
+                )}
               </div>
-              {!unlocked && (
-                <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 12, background: "none", border: "none", padding: 0 }}>
-                  <Icon.Lock size={12} color="#FFD60A" />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "#FFD60A" }}>Tap to unlock</span>
-                </button>
-              )}
             </div>
           )}
 
           {unlocked && (
-            <div style={{ marginTop: 12, padding: "14px 16px", background: "#EAF3FF", borderRadius: 14 }}>
+            <div className="glass" style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18 }}>
               <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
                 Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
               </div>
             </div>
           )}
         </div>
-      ) : (
-        <div style={{ margin: "0 20px 20px", padding: "16px 18px", background: C.card, borderRadius: 18 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.textPrimary, marginBottom: 4 }}>Financial Health metrics unavailable</div>
-          <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.5 }}>
-            We couldn't identify a clear recurring income deposit (like a salary) in this statement, so savings rate and spending percentages can't be calculated. Try uploading a longer statement (3+ months) that includes your regular income deposits.
-          </div>
-        </div>
       )}
 
-      <div style={{ margin: "0 20px 16px", padding: "12px 14px", background: "#EAF3FF", borderRadius: 14, display: "flex", gap: 10, alignItems: "flex-start" }}>
+      <div className="glass" style={{ margin: "0 20px 16px", padding: "12px 14px", borderRadius: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
         <Icon.Sparkles size={15} color={C.blue} />
         <span style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
           Not everything below is a leak — some may be subscriptions you're happy to keep. Use this list to decide what's still worth it, and cancel anything you don't recognize or don't use anymore.
@@ -497,7 +524,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       <div style={{ padding: "0 20px" }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: C.textSecondary, marginBottom: 8, marginLeft: 4 }}>RECURRING CHARGES</div>
-        <div style={{ background: C.card, borderRadius: 16, overflow: "hidden" }}>
+        <div className="glass" style={{ borderRadius: 20, overflow: "hidden" }}>
           {visibleItems.map((item, i) => (
             <div key={i}>
               <button onClick={() => setExpanded(expanded === i ? null : i)}
@@ -522,7 +549,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </button>
               {expanded === i && (
                 <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                  <div style={{ background: C.bg, borderRadius: 12, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
+                  <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
                   <button onClick={() => copyScript(i, item.cancellationScript)}
                     style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
                     {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
@@ -535,9 +562,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           {!unlocked && lockedCount > 0 && (
             <div style={{ padding: 16 }}>
               {Array.from({ length: Math.min(lockedCount, 3) }).map((_, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.6, userSelect: "none" }}>
-                  <div style={{ fontSize: 15, fontWeight: 600 }}>••••••• •••••</div>
-                  <div style={{ fontSize: 15, fontWeight: 700 }}>{cur}••.••</div>
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.5, userSelect: "none" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>••••••• •••••</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>{cur}••.••</div>
                 </div>
               ))}
             </div>
@@ -548,14 +575,14 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       {!unlocked && lockedCount > 0 && (
         <div style={{ padding: "16px 20px 0" }}>
           <button onClick={() => setUnlocked(true)}
-            style={{ width: "100%", background: C.textPrimary, border: "none", borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 6px 18px rgba(0,0,0,0.2)" }}>
+            style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 10px 28px rgba(10,132,255,0.4)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#FFD60A", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon.Lock size={17} color="#1C1C1E" />
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Icon.Lock size={17} color="#fff" />
               </div>
               <div style={{ textAlign: "left" }}>
                 <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Unlock your full report</div>
-                <div style={{ color: "#9A9AA0", fontSize: 12 }}>All leaks, scripts & financial health metrics</div>
+                <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>All leaks, scripts & financial health metrics</div>
               </div>
             </div>
             <div style={{ color: "#fff", fontSize: 16, fontWeight: 800 }}>$9</div>
@@ -571,20 +598,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
 </script>
 
 <script>
-  // Service worker caching is disabled for now while the app is actively changing —
-  // it was causing old versions to reappear intermittently. This actively clears
-  // out any previously registered worker/cache so everyone gets the live version.
-  // Re-enable proper registration (see commented block below) once the product
-  // is stable and ready for real offline support.
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
   }
   if ("caches" in window) {
     caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
   }
-  // window.addEventListener("load", () => {
-  //   navigator.serviceWorker.register("./sw.js").catch(() => {});
-  // });
 </script>
 </body>
 </html>
