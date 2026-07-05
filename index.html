@@ -222,9 +222,12 @@ function NavTitle({ children, onBack }) {
 function InputScreen({ rawText, setRawText, onAnalyze }) {
   return (
     <div>
-      <NavTitle>Leak Finder</NavTitle>
-      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 15, marginTop: 4, lineHeight: 1.4 }}>
-        Paste 3–6 months of transactions from your bank or card export. We'll find what's quietly recurring.
+      <div style={{ padding: "24px 20px 4px" }}>
+        <div style={{ fontSize: 29, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6, lineHeight: 1.15 }}>Save More Without Earning More</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: C.blue, marginTop: 8 }}>Know Your Money. Grow Your Wealth.</div>
+      </div>
+      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 14.5, marginTop: 10, lineHeight: 1.55 }}>
+        Paste 3–6 months of your bank or card transaction history and let our AI do the rest. You'll receive a detailed, easy-to-understand report revealing where your money goes, what's quietly costing you every month, your Financial Health Score, and personalised insights designed to help you save more money and grow your wealth.
       </p>
       <div style={{ padding: "16px 20px" }}>
         <textarea value={rawText} onChange={(e) => setRawText(e.target.value)}
@@ -480,15 +483,20 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`}
               unlocked={unlocked}
               color={C.textPrimary}
-              description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner."
+              description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry—it's simply something to be aware of, not something to stress over."
               onClick={() => !unlocked && setUnlocked(true)}
             />
           )}
 
           {score != null && (
             <div style={{ background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 24, padding: "22px 20px", marginTop: 6, display: "flex", alignItems: "center", gap: 18, boxShadow: `0 12px 32px rgba(0,0,0,0.5)` }}>
-              <div style={{ filter: unlocked ? "none" : "blur(10px)" }}>
+              <div style={{ position: "relative", width: 150, height: 150, flexShrink: 0 }}>
                 <ScoreGauge score={score} color={scoreColor} />
+                {!unlocked && (
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(11,11,16,0.95)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Icon.Lock size={30} color="#FFD60A" />
+                  </div>
+                )}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 11, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Financial Health Score</div>
@@ -561,7 +569,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           ))}
           {!unlocked && lockedCount > 0 && (
             <div style={{ padding: 16 }}>
-              {Array.from({ length: Math.min(lockedCount, 3) }).map((_, i) => (
+              {Array.from({ length: lockedCount }).map((_, i) => (
                 <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", filter: "blur(4px)", opacity: 0.5, userSelect: "none" }}>
                   <div style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>••••••• •••••</div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>{cur}••.••</div>
