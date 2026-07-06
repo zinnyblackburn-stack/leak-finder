@@ -61,6 +61,12 @@ If every occurrence was the same amount, avgAmount and lastAmount will simply be
 
 Limit "items" to at most 8 entries maximum, prioritizing highest-confidence items and largest annual cost first.
 
+STEP 5 — Scan EVERY transaction (not just recurring ones) for signs of a suspicious or unrecognized charge: vague/generic descriptors ("Unknown", "Unknown POS", "Unknown Merchant", a bare reference code with no real business name), or explicit warning markers the source data itself attached (⚠, "suspicious", "fraud", "unauthorized", "forgotten subscription", "duplicate subscription", "money leak", or similar tags/labels). Return each as an entry in "suspiciousCharges": { "date": string, "description": string (as it appears in the data), "amount": number (positive), "reason": string (plain English, under 20 words, why this is worth checking) }. Do not include ordinary recognizable purchases here just because they're large. If genuinely none are found, return an empty array. This is independent of STEP 4 — don't skip a transaction here just because it also appears in "items".
+
+STEP 6 — Separately from the recurring "items" list, identify individual ONE-OFF discretionary transactions — dining out, coffee shops, takeaway/food delivery, clothing/shopping, entertainment, gifts, flowers, hobbies, and similar "wants" spending that does NOT repeat at a regular interval. Never duplicate anything already included in "items". Pick up to 8 of the largest or most representative such transactions and return them in "discretionaryExamples": { "description": string (merchant or plain description), "amount": number (positive), "category": string (e.g. "Dining Out", "Coffee", "Shopping") }, sorted by amount descending. If truly none exist, return an empty array.
+
+Also write "discretionarySummary": a short, warm, plain-English paragraph (3-5 sentences) written directly for the user, tailored specifically to whichever discretionary categories you actually found in STEP 6 (e.g. focus on dining/coffee if that's what dominates, or shopping if that's what dominates instead — never default to a generic "eating out" message if that isn't actually what's present). Include one practical, general tip relevant to what was found. Do NOT mention recurring subscriptions anywhere in this paragraph — those are covered in a separate section. If "discretionaryExamples" is empty, write a short positive note instead (still without mentioning subscriptions).
+
 Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text, matching exactly this schema:
 {
   "currencySymbol": string,
@@ -86,7 +92,14 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
       "note": string (plain English, under 18 words, no jargon),
       "cancellationScript": string (short polite cancel/negotiate message, under 40 words)
     }
-  ]
+  ],
+  "suspiciousCharges": [
+    { "date": string, "description": string, "amount": number, "reason": string }
+  ],
+  "discretionaryExamples": [
+    { "description": string, "amount": number, "category": string }
+  ],
+  "discretionarySummary": string
 }
 If no recurring income is identifiable, return "monthlyIncome": 0 and an empty "incomeSources" array — do not guess or fabricate income.
 Do NOT include totals, sums, or item counts in your response — only the raw items and income sources listed above. Sort "items" by confidence (high first), then by average annual cost descending.`;
@@ -163,6 +176,9 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       totalMonthly: Math.round(totalMonthly * 100) / 100,
       totalAnnual: Math.round(totalMonthly * 12 * 100) / 100,
       itemCount: items.length,
+      suspiciousCharges: Array.isArray(parsed.suspiciousCharges) ? parsed.suspiciousCharges : [],
+      discretionaryExamples: Array.isArray(parsed.discretionaryExamples) ? parsed.discretionaryExamples : [],
+      discretionarySummary: typeof parsed.discretionarySummary === "string" ? parsed.discretionarySummary : "",
     };
 
     return res.status(200).json(result);
