@@ -36,16 +36,51 @@
     container-type: inline-size;
   }
   .glass {
-    background-color: rgba(20,20,26,0.35);
-    background-image: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
-    backdrop-filter: blur(32px) saturate(170%);
-    -webkit-backdrop-filter: blur(32px) saturate(170%);
-    border-top: 1px solid rgba(255,255,255,0.22);
-    border-left: 1px solid rgba(255,255,255,0.16);
-    border-right: 1px solid rgba(255,255,255,0.09);
-    border-bottom: 1px solid rgba(0,0,0,0.28);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.22);
+    position: relative;
+    background-color: rgb(10,15,32);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.018 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, rgba(255,255,255,0.03), transparent 40%),
+      radial-gradient(95% 75% at 88% -8%, rgba(45,130,255,0.09), transparent 62%),
+      radial-gradient(95% 75% at 4% 108%, rgba(160,70,255,0.07), transparent 62%),
+      radial-gradient(130% 110% at 45% 40%, #0B1233, transparent 78%);
+    background-blend-mode: soft-light, normal, normal, normal, normal;
+    backdrop-filter: blur(26px) saturate(170%) brightness(105%);
+    -webkit-backdrop-filter: blur(26px) saturate(170%) brightness(105%);
+    border: 1px solid rgba(110,170,255,0.30);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 -1px 0 rgba(0,0,0,0.12),
+      0 0 40px rgba(60,140,255,0.12),
+      0 20px 80px rgba(0,0,0,0.35),
+      0 8px 25px rgba(25,60,120,0.15);
+    transition: border-color 380ms cubic-bezier(.22,.61,.36,1), box-shadow 380ms cubic-bezier(.22,.61,.36,1), filter 380ms cubic-bezier(.22,.61,.36,1);
   }
+  .glass:hover {
+    border-color: rgba(110,170,255,0.42);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.05),
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.12),
+      0 0 48px rgba(60,140,255,0.16),
+      0 20px 80px rgba(0,0,0,0.38),
+      0 8px 25px rgba(25,60,120,0.18);
+    filter: saturate(1.05);
+  }
+  .glass-accent {
+    position: relative;
+    backdrop-filter: blur(26px) saturate(170%) brightness(105%);
+    -webkit-backdrop-filter: blur(26px) saturate(170%) brightness(105%);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.06),
+      inset 0 -1px 0 rgba(0,0,0,0.14),
+      0 20px 80px rgba(0,0,0,0.35),
+      0 8px 25px rgba(25,60,120,0.15);
+    transition: border-color 380ms cubic-bezier(.22,.61,.36,1), box-shadow 380ms cubic-bezier(.22,.61,.36,1), filter 380ms cubic-bezier(.22,.61,.36,1);
+  }
+  .glass-accent:hover { filter: saturate(1.06); }
   ::placeholder { color: #6E6E76; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
@@ -240,25 +275,48 @@ function NavTitle({ children, onBack }) {
 }
 
 function InputScreen({ rawText, setRawText, onAnalyze }) {
+  const titleRef = React.useRef(null);
+  const sloganRef = React.useRef(null);
+  const [sloganScale, setSloganScale] = useState(1);
+  const sloganScaleRef = React.useRef(1);
+  sloganScaleRef.current = sloganScale;
+
+  React.useLayoutEffect(() => {
+    function measure() {
+      if (titleRef.current && sloganRef.current) {
+        const titleWidth = titleRef.current.getBoundingClientRect().width;
+        const naturalSloganWidth = sloganRef.current.getBoundingClientRect().width / sloganScaleRef.current;
+        if (naturalSloganWidth > 0) setSloganScale(titleWidth / naturalSloganWidth);
+      }
+    }
+    measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
   return (
     <div>
       <div style={{ padding: "28px 10px 0", textAlign: "center" }}>
-        <div style={{
+        <div ref={titleRef} style={{
           fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
-          fontSize: 38,
+          fontSize: 34,
           lineHeight: 0.95,
-          letterSpacing: 2,
+          letterSpacing: 1,
           color: "#fff",
           background: "linear-gradient(180deg, #FFFFFF 0%, #BFD6FF 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
           filter: "drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
+          display: "inline-block", whiteSpace: "nowrap",
         }}>
           MONEY LEAK DETECTOR
         </div>
-        <div style={{ fontSize: 12, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 2.4, textTransform: "uppercase", marginTop: 12, whiteSpace: "nowrap", textAlign: "center" }}>
-          Know Your Money · Grow Your Wealth
+        <div style={{ marginTop: 12 }}>
+          <div ref={sloganRef} style={{ fontSize: 12, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 1, textTransform: "uppercase", display: "inline-block", whiteSpace: "nowrap", transform: `scaleX(${sloganScale})`, transformOrigin: "center" }}>
+            Know Your Money · Grow Your Wealth
+          </div>
         </div>
       </div>
       <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13, marginTop: 14, lineHeight: 1.45 }}>
@@ -276,7 +334,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           Try sample data
         </button>
         <button onClick={onAnalyze} disabled={!rawText.trim()}
-          style={{ width: "100%", background: rawText.trim() ? `linear-gradient(135deg, ${C.blue}, ${C.purple})` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "14px 0", fontSize: 16.5, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
+          style={{ width: "100%", background: rawText.trim() ? `linear-gradient(125deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 22%), linear-gradient(115deg, #4FC3FF 0%, #0A84FF 32%, #6A5CE6 68%, #A45EE5 100%)` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "14px 0", fontSize: 16.5, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
           Find My Leaks - Save My Money
         </button>
       </div>
@@ -522,11 +580,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       <NavTitle onBack={onBack} />
 
       <div style={{ margin: "0 20px 12px" }}>
-        <div onClick={() => !unlocked && scrollToPricing()} style={{
-          width: "100%", textAlign: "left", display: "block", border: "1px solid rgba(48,209,88,0.5)", borderRadius: 24, padding: "18px 18px",
+        <div onClick={() => !unlocked && scrollToPricing()} className="glass-accent" style={{
+          width: "100%", textAlign: "left", display: "block", border: "1px solid rgba(48,209,88,0.5)", borderRadius: 26, padding: "18px 18px",
           background: "linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
-          boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.22)", position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
-          backdropFilter: "blur(28px) saturate(160%)", WebkitBackdropFilter: "blur(28px) saturate(160%)",
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.14), 0 0 40px rgba(48,209,88,0.16), 0 20px 80px rgba(0,0,0,0.35), 0 8px 25px rgba(25,60,120,0.15)", position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
         }}>
           <TechCornerHex color="#6FFFA0" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
@@ -566,7 +623,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       </div>
 
       <div style={{ margin: "0 20px 14px" }}>
-        <div className="glass" style={{ borderRadius: 24, padding: "18px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "0 0 40px rgba(255,69,58,0.18), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.22)", position: "relative", overflow: "hidden" }}>
+        <div className="glass-accent" style={{ borderRadius: 26, padding: "18px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.14), 0 0 40px rgba(255,69,58,0.14), 0 20px 80px rgba(0,0,0,0.35), 0 8px 25px rgba(25,60,120,0.15)", position: "relative", overflow: "hidden" }}>
           <TechCorner color="#FF8A80" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingDown size={15} color="#FF8A80" />
