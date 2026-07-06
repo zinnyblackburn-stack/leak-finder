@@ -22,32 +22,40 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   button { cursor: pointer; font-family: inherit; }
   textarea { font-family: inherit; }
-  #root { min-height: 100vh; display: flex; justify-content: center; }
+  #root { min-height: 100vh; display: flex; justify-content: center; position: relative; z-index: 1; }
+  .bg-fixed {
+    position: fixed; inset: 0; z-index: 0;
+    background-color: #030305;
+    background-image:
+      radial-gradient(1.6px 1.6px at 20% 15%, rgba(255,255,255,0.55), transparent 100%),
+      radial-gradient(1.2px 1.2px at 65% 8%, rgba(255,255,255,0.4), transparent 100%),
+      radial-gradient(1.4px 1.4px at 85% 30%, rgba(255,255,255,0.5), transparent 100%),
+      radial-gradient(1.2px 1.2px at 10% 45%, rgba(255,255,255,0.35), transparent 100%),
+      radial-gradient(1.6px 1.6px at 40% 60%, rgba(255,255,255,0.45), transparent 100%),
+      radial-gradient(1.2px 1.2px at 75% 70%, rgba(255,255,255,0.4), transparent 100%),
+      radial-gradient(1.4px 1.4px at 92% 88%, rgba(255,255,255,0.5), transparent 100%),
+      radial-gradient(1.2px 1.2px at 30% 90%, rgba(255,255,255,0.35), transparent 100%),
+      radial-gradient(1.3px 1.3px at 55% 40%, rgba(255,255,255,0.3), transparent 100%),
+      radial-gradient(circle at 100% 0%, rgba(10,132,255,0.55), transparent 40%),
+      radial-gradient(circle at 108% 10%, rgba(94,92,230,0.35), transparent 45%),
+      radial-gradient(circle at -8% 45%, rgba(148,92,230,0.45), transparent 42%),
+      radial-gradient(circle at 100% 95%, rgba(10,132,255,0.45), transparent 42%);
+    background-size: 220px 220px, 260px 260px, 240px 240px, 200px 200px, 250px 250px, 230px 230px, 210px 210px, 240px 240px, 220px 220px, auto, auto, auto, auto;
+  }
   .app-shell {
     width: 100%; max-width: 480px; min-height: 100vh;
     container-type: inline-size;
-    background-color: #050507;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
-      radial-gradient(circle at 10% -8%, rgba(94,92,230,0.30), transparent 42%),
-      radial-gradient(circle at 108% 6%, rgba(10,132,255,0.26), transparent 38%),
-      radial-gradient(circle at 92% 58%, rgba(255,45,146,0.16), transparent 40%),
-      radial-gradient(circle at 4% 62%, rgba(48,209,88,0.12), transparent 42%),
-      radial-gradient(circle at 50% 108%, rgba(94,92,230,0.20), transparent 50%);
-    background-size: 26px 26px, 26px 26px, auto, auto, auto, auto, auto;
   }
   .glass {
     background-color: rgba(20,20,26,0.35);
-    background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
-    background-size: 26px 26px, 26px 26px, auto;
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
-    border: 1px solid rgba(255,255,255,0.12);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+    background-image: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+    backdrop-filter: blur(32px) saturate(170%);
+    -webkit-backdrop-filter: blur(32px) saturate(170%);
+    border-top: 1px solid rgba(255,255,255,0.22);
+    border-left: 1px solid rgba(255,255,255,0.16);
+    border-right: 1px solid rgba(255,255,255,0.09);
+    border-bottom: 1px solid rgba(0,0,0,0.28);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12), inset 0 -1px 0 rgba(0,0,0,0.22);
   }
   ::placeholder { color: #6E6E76; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -58,6 +66,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 </head>
 <body>
+<div class="bg-fixed"></div>
 <div id="root"></div>
 
 <script type="text/babel" data-presets="react">
@@ -526,9 +535,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       <div style={{ margin: "0 20px 12px" }}>
         <div onClick={() => !unlocked && scrollToPricing()} style={{
           width: "100%", textAlign: "left", display: "block", border: "1px solid rgba(48,209,88,0.5)", borderRadius: 24, padding: "18px 18px",
-          background: "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
-          backgroundSize: "26px 26px, 26px 26px, auto",
-          boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)", position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
+          background: "linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
+          boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.22)", position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
           backdropFilter: "blur(28px) saturate(160%)", WebkitBackdropFilter: "blur(28px) saturate(160%)",
         }}>
           <TechCornerHex color="#6FFFA0" />
@@ -569,7 +577,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       </div>
 
       <div style={{ margin: "0 20px 14px" }}>
-        <div className="glass" style={{ borderRadius: 24, padding: "18px 18px", background: "linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", backgroundSize: "26px 26px, 26px 26px, auto", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "0 0 40px rgba(255,69,58,0.18), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)", position: "relative", overflow: "hidden" }}>
+        <div className="glass" style={{ borderRadius: 24, padding: "18px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "0 0 40px rgba(255,69,58,0.18), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -1px 0 rgba(0,0,0,0.22)", position: "relative", overflow: "hidden" }}>
           <TechCorner color="#FF8A80" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingDown size={15} color="#FF8A80" />
