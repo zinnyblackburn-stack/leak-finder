@@ -26,11 +26,14 @@
   .app-shell {
     width: 100%; max-width: 480px; min-height: 100vh;
     container-type: inline-size;
-    background:
+    background-color: #050507;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
       radial-gradient(circle at 15% -10%, rgba(94,92,230,0.20), transparent 45%),
       radial-gradient(circle at 100% 10%, rgba(10,132,255,0.16), transparent 40%),
-      radial-gradient(circle at 50% 100%, rgba(94,92,230,0.10), transparent 50%),
-      #050507;
+      radial-gradient(circle at 50% 100%, rgba(94,92,230,0.10), transparent 50%);
+    background-size: 26px 26px, 26px 26px, auto, auto, auto;
   }
   .glass {
     background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
@@ -422,6 +425,19 @@ function LockPill({ color, textColor }) {
   );
 }
 
+function TechCorner({ color }) {
+  return (
+    <svg width="96" height="96" viewBox="0 0 96 96" style={{ position: "absolute", top: -14, right: -14, pointerEvents: "none" }}>
+      <circle cx="74" cy="22" r="20" stroke={color} strokeWidth="1" fill="none" opacity="0.45" />
+      <circle cx="74" cy="22" r="32" stroke={color} strokeWidth="1" fill="none" opacity="0.28" />
+      <circle cx="74" cy="22" r="44" stroke={color} strokeWidth="1" fill="none" opacity="0.14" />
+      <line x1="74" y1="22" x2="46" y2="50" stroke={color} strokeWidth="1" opacity="0.4" />
+      <circle cx="74" cy="22" r="2.5" fill={color} opacity="0.8" />
+      <circle cx="46" cy="50" r="2" fill={color} opacity="0.5" />
+    </svg>
+  );
+}
+
 function StatCard({ label, subtitle, value, color, description, unlocked, onUnlock }) {
   return (
     <button onClick={() => !unlocked && onUnlock()} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 18, padding: "14px 16px", marginBottom: 8, cursor: unlocked ? "default" : "pointer", display: "block" }}>
@@ -488,6 +504,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           background: "linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
           boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)", position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
         }}>
+          <TechCorner color="#6FFFA0" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingUp size={15} color="#6FFFA0" />
             <span style={{ fontSize: 12, fontWeight: 800, color: "#DFFFEA", letterSpacing: 0.5, textTransform: "uppercase" }}>Biggest Saving Opportunity</span>
@@ -525,7 +542,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       </div>
 
       <div style={{ margin: "0 20px 14px" }}>
-        <div className="glass" style={{ borderRadius: 24, padding: "18px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "0 0 40px rgba(255,69,58,0.18), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)" }}>
+        <div className="glass" style={{ borderRadius: 24, padding: "18px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.28), rgba(255,69,58,0.08))", border: "1px solid rgba(255,69,58,0.5)", boxShadow: "0 0 40px rgba(255,69,58,0.18), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)", position: "relative", overflow: "hidden" }}>
+          <TechCorner color="#FF8A80" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingDown size={15} color="#FF8A80" />
             <span style={{ fontSize: 12, fontWeight: 800, color: "#FFD9D6", letterSpacing: 0.5, textTransform: "uppercase" }}>Yearly Recurring Costs</span>
