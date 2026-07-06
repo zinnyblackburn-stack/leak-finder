@@ -220,10 +220,10 @@ function LeakFinder() {
 
 function NavTitle({ children, onBack }) {
   return (
-    <div style={{ padding: "12px 20px 0" }}>
+    <div style={{ padding: "6px 20px 0" }}>
       {onBack && (
-        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", color: C.blue, fontSize: 15, padding: "4px 0" }}>
-          <Icon.ArrowLeft size={16} /> Back
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", color: C.textSecondary, fontSize: 13, padding: "4px 0", opacity: 0.8 }}>
+          <Icon.ArrowLeft size={13} /> Back
         </button>
       )}
       {children && <div style={{ fontSize: 32, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6, marginTop: 8 }}>{children}</div>}
@@ -391,7 +391,7 @@ function scoreDescription(score) {
 function ScoreGauge({ score, color, size = 112, thickness = 11, locked }) {
   const inner = size - thickness * 2;
   const deg = locked ? 0 : Math.max(0, Math.min(360, score * 3.6));
-  const lockSize = Math.round(size * 0.22);
+  const lockSize = Math.round(size * (locked ? 0.34 : 0.22));
   const digitSize = Math.round(size * 0.25);
   const subSize = Math.max(9, Math.round(size * 0.09));
   return (
@@ -471,6 +471,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const savingOpportunityAnnual = Math.round((discretionaryMonthly || 0) * 12);
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
+  const hasSuspicious = Array.isArray(result.suspiciousCharges) && result.suspiciousCharges.length > 0;
 
   const fmt = (n) => Math.round(n).toLocaleString();
 
@@ -595,22 +596,45 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
       </div>
 
-      <div style={{ margin: "0 20px 14px", display: "flex", gap: 10 }}>
-        <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ flex: 1, aspectRatio: "1 / 1", textAlign: "center", borderRadius: 20, padding: 14, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ margin: "0 20px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{
+          flex: 1, aspectRatio: unlocked ? "auto" : "1 / 1", textAlign: "center", borderRadius: 20, padding: 16, position: "relative",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: unlocked ? "flex-start" : "center",
+        }}>
           {!unlocked && <LockPill color="rgba(10,132,255,0.55)" />}
-          <div style={{ fontSize: 27, fontWeight: 800, color: "#fff", letterSpacing: 3, lineHeight: 1 }}>AI</div>
-          <div style={{ fontFamily: "'Bebas Neue', 'Oswald', " + FONT, fontSize: 11, letterSpacing: 3.2, color: C.blue, lineHeight: 1, marginTop: 4 }}>SUMMARY</div>
-          <div style={{ fontSize: 11, color: C.textPrimary, marginTop: 10, lineHeight: 1.4 }}>
-            {unlocked
-              ? "Your biggest wins are below — start with the highest-cost leak."
-              : "Unlock to discover your biggest opportunities to save more."}
-          </div>
+          <div style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: 3, lineHeight: 1 }}>AI</div>
+          <div style={{ fontFamily: "'Bebas Neue', 'Oswald', " + FONT, fontSize: 14, letterSpacing: 2.2, color: "#fff", lineHeight: 1, marginTop: 5 }}>SUMMARY</div>
+
+          {unlocked ? (
+            <div style={{ textAlign: "left", marginTop: 14, width: "100%" }}>
+              <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.55 }}>
+                {result.discretionarySummary || "Nice work — we didn't find much one-off discretionary spending worth flagging here."}
+              </div>
+              {result.discretionaryExamples && result.discretionaryExamples.length > 0 && (
+                <div style={{ marginTop: 10, borderRadius: 12, overflow: "hidden", background: "rgba(255,255,255,0.06)" }}>
+                  {result.discretionaryExamples.map((ex, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 12px", borderBottom: i < result.discretionaryExamples.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ex.description}</div>
+                        <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>{ex.category}</div>
+                      </div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", flexShrink: 0, marginLeft: 8 }}>{cur}{ex.amount}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ fontSize: 11, color: C.textPrimary, marginTop: 10, lineHeight: 1.4 }}>
+              Unlock to discover your biggest opportunities to save more.
+            </div>
+          )}
         </button>
 
         {score != null && (
-          <button onClick={() => !unlocked && scrollToPricing()} style={{ flex: 1, aspectRatio: "1 / 1", textAlign: "left", background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 20, padding: 12, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: `0 10px 26px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)` }}>
+          <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ flex: 1, aspectRatio: "1 / 1", textAlign: "left", borderRadius: 20, padding: 12, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {!unlocked && <LockPill color="rgba(255,214,10,0.55)" textColor="#1C1C1E" />}
-            <ScoreGauge score={score} color={scoreColor} locked={!unlocked} size={100} thickness={10} />
+            <ScoreGauge score={score} color={scoreColor} locked={!unlocked} size={116} thickness={11} />
             <div style={{ fontSize: 10, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase", textAlign: "center" }}>Financial Health Score</div>
           </button>
         )}
@@ -644,6 +668,32 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                         <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
                       </button>
                     </React.Fragment>
+                  )}
+                </div>
+              )}
+
+              {hasSuspicious && (
+                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Suspicious Charges</div>
+                  <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(unusual or unrecognized transactions worth double-checking)</div>
+                  <div style={{ fontSize: 25, fontWeight: 800, marginTop: 7, color: C.orange }}>{result.suspiciousCharges.length} flagged</div>
+                  {unlocked ? (
+                    <div style={{ marginTop: 10, borderRadius: 12, overflow: "hidden", background: "rgba(255,159,10,0.08)" }}>
+                      {result.suspiciousCharges.map((s, i) => (
+                        <div key={i} style={{ padding: "10px 12px", borderBottom: i < result.suspiciousCharges.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                            <span style={{ fontSize: 13, fontWeight: 600, color: C.textPrimary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.description}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: C.orange, flexShrink: 0 }}>{cur}{s.amount}</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>{s.date} — {s.reason}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <button onClick={scrollToPricing} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 9, background: "none", border: "none", padding: 0 }}>
+                      <Icon.Lock size={11} color={C.blue} />
+                      <span style={{ fontSize: 11.5, fontWeight: 700, color: C.blue }}>Unlock insight</span>
+                    </button>
                   )}
                 </div>
               )}
