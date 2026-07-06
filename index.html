@@ -94,6 +94,11 @@ const Icon = {
       <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
     </svg>
   ),
+  TrendingUp: (p) => (
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/>
+    </svg>
+  ),
 };
  
 const C = {
@@ -191,8 +196,6 @@ function LeakFinder() {
     setTimeout(() => setCopiedIdx(null), 1600);
   }
  
-  const confColor = (conf) => (conf === "high" ? C.red : conf === "medium" ? C.orange : C.textSecondary);
- 
   return (
     <div className="app-shell" style={{ fontFamily: FONT }}>
       <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
@@ -203,7 +206,7 @@ function LeakFinder() {
         {screen === "results" && result && (
           <ResultsScreen result={result} unlocked={unlocked} setUnlocked={setUnlocked}
             expanded={expanded} setExpanded={setExpanded} copiedIdx={copiedIdx}
-            copyScript={copyScript} confColor={confColor} onBack={() => setScreen("input")} />
+            copyScript={copyScript} onBack={() => setScreen("input")} />
         )}
       </div>
     </div>
@@ -324,6 +327,39 @@ function savingsColor(v) {
   if (v >= 20) return C.orange;
   return C.red;
 }
+function costTier(monthlyAmount) {
+  if (monthlyAmount < 6) return "LOW";
+  if (monthlyAmount < 14) return "MEDIUM";
+  return "HIGH";
+}
+function costTierColor(tier) {
+  return tier === "HIGH" ? C.red : tier === "MEDIUM" ? C.orange : C.textSecondary;
+}
+function savingsDescription(v) {
+  if (v >= 30) return "You're saving over 30% of your income — an excellent rate. Keep this consistency going, and consider putting part of it toward long-term investments.";
+  if (v >= 20) return "You're saving at least 20% of your income, a solid habit. Pushing toward 30%+ would put you in excellent territory.";
+  return "This is the money you're keeping for your future. Aim to save at least 20% of your income, with 30% or more considered excellent.";
+}
+function recurringDescription(v) {
+  if (v <= 10) return "Your recurring costs are under 10% of your income — excellent. Keeping monthly commitments this low gives you a lot of flexibility.";
+  if (v <= 20) return "Your recurring costs are in a reasonable range. Getting them under 10% would be excellent and free up even more flexibility.";
+  return "Recurring costs above 20% of your income can limit your flexibility. Reviewing your subscriptions is a good place to start.";
+}
+function spendDescription(v) {
+  if (v <= 60) return "You're spending under 60% of your income — excellent. This leaves plenty of room to save, invest, and reach your goals.";
+  if (v <= 80) return "Your overall spending is in a reasonable range. Getting it under 60% would be excellent and give you even more freedom.";
+  return "Spending above 80% of your income can make saving much harder. Every percentage point you reduce gives you more freedom.";
+}
+function discretionaryDescription(v) {
+  if (v <= 15) return "Discretionary spending under 15% is excellent — you're already keeping wants well in check.";
+  if (v <= 30) return "This is a reasonable level of discretionary spending. Wants are things you enjoy but could trim without much impact if you want to save more.";
+  return "Discretionary spending above 30% suggests there may be easy wins here. Wants are things you enjoy but could trim without much impact.";
+}
+function essentialDescription(v) {
+  if (v <= 50) return "Your essential spending is low relative to income, which leaves a lot of flexibility elsewhere.";
+  if (v <= 65) return "These are costs you need to cover no matter what — the goal isn't to cut these, just to be aware of them.";
+  return "Essential costs make up a large share of your income. These aren't things to cut, but worth keeping an eye on as things change.";
+}
 function computeScore({ savingsRate, recurringPct, spendPct }) {
   const savingsComponent = Math.max(0, Math.min(40, (savingsRate / 30) * 40));
   const recurringComponent = Math.max(0, Math.min(30, 30 - (recurringPct / 20) * 30));
@@ -347,53 +383,66 @@ function scoreDescription(score) {
   return band ? band[1] : SCORE_BANDS[SCORE_BANDS.length - 1][1];
 }
  
-function ScoreGauge({ score, color, size = 150, thickness = 14 }) {
+function ScoreGauge({ score, color, size = 112, thickness = 11, locked }) {
   const inner = size - thickness * 2;
-  const deg = Math.max(0, Math.min(360, score * 3.6));
+  const deg = locked ? 0 : Math.max(0, Math.min(360, score * 3.6));
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
-      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `conic-gradient(${color} ${deg}deg, rgba(255,255,255,0.08) ${deg}deg)`, boxShadow: `0 0 36px ${color}55` }} />
+      <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: locked ? "rgba(255,255,255,0.08)" : `conic-gradient(${color} ${deg}deg, rgba(255,255,255,0.08) ${deg}deg)`, boxShadow: locked ? "none" : `0 0 30px ${color}55` }} />
       <div style={{ position: "absolute", top: thickness, left: thickness, width: inner, height: inner, borderRadius: "50%", background: C.panelSolid, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontSize: 34, fontWeight: 800, color: "#fff", filter: "none" }}>{score}</div>
-        <div style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>/ 100</div>
+        {locked ? (
+          <Icon.Lock size={20} color="#FFD60A" />
+        ) : (
+          <React.Fragment>
+            <div style={{ fontSize: 26, fontWeight: 800, color: "#fff" }}>{score}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#8E8E93" }}>/ 100</div>
+          </React.Fragment>
+        )}
       </div>
     </div>
   );
 }
  
-function StatCard({ label, subtitle, value, unlocked, color, description, onClick }) {
+function StatCard({ label, subtitle, value, color, description, unlocked, onUnlock }) {
   return (
-    <button onClick={onClick} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "16px 18px", marginBottom: 10, cursor: unlocked ? "default" : "pointer", display: "block" }}>
-      <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
-      {subtitle && <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 3, opacity: 0.85 }}>{subtitle}</div>}
-      <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: unlocked ? color : C.textPrimary, filter: unlocked ? "none" : "blur(9px)" }}>
+    <button onClick={() => !unlocked && onUnlock()} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 18, padding: "14px 16px", marginBottom: 8, cursor: unlocked ? "default" : "pointer", display: "block" }}>
+      <div style={{ fontSize: 10.5, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
+      {subtitle && <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3, opacity: 0.85 }}>{subtitle}</div>}
+      <div style={{ fontSize: 25, fontWeight: 800, marginTop: 7, color: color }}>
         {value}
       </div>
-      {description && (
-        <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 8, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
-          {description}
-        </div>
-      )}
-      {!unlocked && (
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10 }}>
-          <Icon.Lock size={12} color={C.blue} />
-          <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
+      {unlocked ? (
+        description && (
+          <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 7, lineHeight: 1.5 }}>
+            {description}
+          </div>
+        )
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 9 }}>
+          <Icon.Lock size={11} color={C.blue} />
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: C.blue }}>Unlock insight</span>
         </div>
       )}
     </button>
   );
 }
  
-function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, confColor, onBack }) {
+function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, onBack }) {
   const [incomeNoteOpen, setIncomeNoteOpen] = useState(false);
+  const [insightOpen, setInsightOpen] = useState(false);
+  const pricingRef = React.useRef(null);
+  const scrollToPricing = () => pricingRef.current && pricingRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+ 
   const cur = result.currencySymbol || "$";
   const toMonthlyEquiv = (amount, frequency) => {
     if (frequency === "weekly") return amount * 4.345;
     if (frequency === "annual") return amount / 12;
     return amount;
   };
-  const visibleItems = unlocked ? result.items : result.items.slice(0, 1);
-  const lockedCount = result.items.length - visibleItems.length;
+  const monthlyOf = (item) => toMonthlyEquiv(item.avgAmount, item.frequency);
+  const sortedItems = [...result.items].sort((a, b) => monthlyOf(b) - monthlyOf(a));
+  const visibleItems = unlocked ? sortedItems : sortedItems.slice(0, 1);
+  const lockedCount = sortedItems.length - visibleItems.length;
   const hasIncome = result.monthlyIncome > 0;
  
   const recurringPct = hasIncome ? (result.totalMonthly / result.monthlyIncome) * 100 : 0;
@@ -412,6 +461,68 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   return (
     <div style={{ paddingBottom: 24 }}>
       <NavTitle onBack={onBack}>Your Report</NavTitle>
+ 
+      <div style={{ margin: "0 20px 10px" }}>
+        <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ width: "100%", textAlign: "left", borderRadius: 18, padding: "12px 16px", display: "block" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+              <Icon.Sparkles size={14} color={C.blue} />
+              <span style={{ fontSize: 12, fontWeight: 800, color: C.textSecondary, letterSpacing: 0.4, textTransform: "uppercase" }}>AI Summary</span>
+            </div>
+            {!unlocked && <Icon.Lock size={13} color={C.textSecondary} />}
+          </div>
+          <div style={{ fontSize: 12.5, color: C.textPrimary, marginTop: 6, lineHeight: 1.45 }}>
+            {unlocked
+              ? "Your biggest wins are below — start with the highest-cost leak and work down the list."
+              : "Unlock to discover your biggest opportunities to save more and improve your Financial Health Score."}
+          </div>
+        </button>
+      </div>
+ 
+      <div style={{ margin: "0 20px 14px" }}>
+        <button onClick={() => !unlocked && scrollToPricing()} style={{
+          width: "100%", textAlign: "left", display: "block", border: "1px solid rgba(48,209,88,0.5)", borderRadius: 26, padding: "22px 20px",
+          background: "linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
+          boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4)", position: "relative", overflow: "hidden",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
+            <Icon.TrendingUp size={16} color="#6FFFA0" />
+            <span style={{ fontSize: 12.5, fontWeight: 800, color: "#DFFFEA", letterSpacing: 0.5, textTransform: "uppercase" }}>Biggest Saving Opportunity</span>
+          </div>
+          <div style={{
+            fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
+            fontSize: 44, letterSpacing: 1, lineHeight: 1, color: "#fff",
+            filter: "drop-shadow(0 4px 18px rgba(48,209,88,0.5))",
+          }}>
+            {unlocked ? `${cur}${result.totalAnnual?.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : `${cur}•,•••`}<span style={{ fontSize: 16, marginLeft: 6 }}>/year</span>
+          </div>
+          {unlocked ? (
+            <React.Fragment>
+              <div style={{ marginTop: 14, borderRadius: 14, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
+                {sortedItems.map((item, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < sortedItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: "#fff" }}>{item.merchant}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#DFFFEA" }}>{cur}{(monthlyOf(item) * 12).toFixed(0)}/yr</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontSize: 12.5, color: "#E8FFF0", marginTop: 12, lineHeight: 1.5 }}>
+                You don't need to cut everything. Focus on the payments that no longer provide enough value. Even cancelling or reducing just one could make a meaningful difference to your savings over the next year.
+              </div>
+            </React.Fragment>
+          ) : (
+            <React.Fragment>
+              <div style={{ fontSize: 13, color: "#E8FFF0", marginTop: 10, lineHeight: 1.5 }}>
+                There's significant potential to save more. Unlock to discover your biggest saving opportunities.
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
+                <Icon.Lock size={13} color="#fff" />
+                <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>Tap to unlock</span>
+              </div>
+            </React.Fragment>
+          )}
+        </button>
+      </div>
  
       <div style={{ margin: "0 20px 12px" }}>
         <div className="glass" style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, borderRadius: 26, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
@@ -448,66 +559,64 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       )}
  
       <div style={{ margin: "0 20px 20px" }}>
-        <div className="glass" style={{ borderRadius: 22, padding: "20px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.16), rgba(255,69,58,0.05))", border: "1px solid rgba(255,69,58,0.45)", boxShadow: "0 0 30px rgba(255,69,58,0.12)" }}>
+        <div className="glass" style={{ borderRadius: 22, padding: "22px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.24), rgba(255,69,58,0.06))", border: "2px solid rgba(255,69,58,0.6)", boxShadow: "0 0 44px rgba(255,69,58,0.25)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <Icon.AlertTriangle size={19} color={C.red} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 16, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
+            <Icon.AlertTriangle size={22} color={C.red} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 17, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
           </div>
           <div style={{ fontSize: 13, color: "#F0C9C5", lineHeight: 1.55, marginBottom: 16 }}>
             Make sure you recognise all of them. Not every recurring payment is a leak. A good approach is to regularly review what you're paying for and only keep what adds value.
           </div>
  
           <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
-            {visibleItems.map((item, i) => (
-              <div key={i}>
-                <button onClick={() => setExpanded(expanded === i ? null : i)}
-                  style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: confColor(item.confidence), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{item.confidence}</span>
-                    </div>
-                    <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                        {cur}{toMonthlyEquiv(item.avgAmount, item.frequency).toFixed(2)}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/mo</span>
+            {visibleItems.map((item, i) => {
+              const tier = costTier(monthlyOf(item));
+              return (
+                <div key={i}>
+                  <button onClick={() => setExpanded(expanded === i ? null : i)}
+                    style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: costTierColor(tier), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{tier}</span>
                       </div>
-                      <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>avg monthly cost</div>
-                      <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-                        last charge: {cur}{item.lastAmount}{item.frequency === "weekly" ? "/wk" : item.frequency === "annual" ? "/yr" : "/mo"}
-                      </div>
+                      <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
                     </div>
-                    <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-                  </div>
-                </button>
-                {expanded === i && (
-                  <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                    <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
-                    <button onClick={() => copyScript(i, item.cancellationScript)}
-                      style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
-                      {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
-                      {copiedIdx === i ? "Copied" : "Copy script"}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
+                          {cur}{monthlyOf(item).toFixed(2)}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/mo</span>
+                        </div>
+                        <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>avg monthly cost</div>
+                        <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
+                          last charge: {cur}{item.lastAmount}{item.frequency === "weekly" ? "/wk" : item.frequency === "annual" ? "/yr" : "/mo"}
+                        </div>
+                      </div>
+                      <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                    </div>
+                  </button>
+                  {expanded === i && (
+                    <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
+                      <button onClick={() => copyScript(i, item.cancellationScript)}
+                        style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
+                        {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
+                        {copiedIdx === i ? "Copied" : "Copy script"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
  
           {!unlocked && lockedCount > 0 && (
-            <button onClick={() => setUnlocked(true)}
+            <button onClick={scrollToPricing}
               style={{ width: "100%", marginTop: 12, background: "rgba(255,69,58,0.22)", border: "1px solid rgba(255,69,58,0.5)", borderRadius: 14, padding: "13px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                 <Icon.Lock size={15} color="#FFEDEC" style={{ flexShrink: 0 }} />
-                <div style={{ textAlign: "left", minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#FF8A80", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {lockedCount} Potential {lockedCount === 1 ? "Leak" : "Leaks"}
-                  </div>
-                  <div style={{ fontSize: 11.5, color: "#F0C9C5", marginTop: 1, opacity: 0.85 }}>
-                    {lockedCount} more recurring {lockedCount === 1 ? "payment" : "payments"} locked
-                  </div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#FF8A80", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>
+                  {lockedCount} Potential Money {lockedCount === 1 ? "Leak" : "Leaks"}
                 </div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
@@ -519,131 +628,142 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
       </div>
  
-      {hasIncome && (
-        <div style={{ margin: "0 20px 20px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "6px 4px 8px", textTransform: "uppercase", letterSpacing: 0.4 }}>Financial Health</div>
- 
-          {hasBalanceCheck && (
-            <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10 }}>
-              <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Balance Change (this period)</div>
-              <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(exact — calculated directly from your statement)</div>
-              <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: balanceChange >= 0 ? C.green : C.red, filter: unlocked ? "none" : "blur(9px)" }}>
-                {balanceChange >= 0 ? "+" : "-"}{cur}{Math.abs(balanceChange).toLocaleString(undefined, { maximumFractionDigits: 2 })}
-              </div>
-              {!unlocked && (
-                <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, background: "none", border: "none", padding: 0 }}>
-                  <Icon.Lock size={12} color={C.blue} />
-                  <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
-                </button>
-              )}
-            </div>
-          )}
- 
-          <StatCard
-            label="Savings Rate"
-            value={`${Math.round(savingsRate)}%`}
-            unlocked={unlocked}
-            color={savingsColor(savingsRate)}
-            description="This is the money you're keeping for your future. Aim to save at least 20% of your income, with 30% or more being an excellent target. Every month you save brings you one step closer to financial freedom."
-            onClick={() => !unlocked && setUnlocked(true)}
-          />
- 
-          <StatCard
-            label="Recurring Costs / Income"
-            subtitle="(monthly commitments, subscriptions, leaks)"
-            value={`${Math.round(recurringPct)}%  ·  ${cur}${fmt(result.totalMonthly)}/mo`}
-            unlocked={unlocked}
-            color={bandColor(recurringPct, 10, 20)}
-            description="Try to keep recurring costs below 10–15% of your income. Under 10% is excellent, while above 20% can limit your financial flexibility. Keeping monthly commitments low makes it easier to save and adapt to life's changes."
-            onClick={() => !unlocked && setUnlocked(true)}
-          />
- 
-          <StatCard
-            label="Costs / Income"
-            subtitle="(how much of your income you're spending overall)"
-            value={`${Math.round(spendPct)}%  ·  ${cur}${fmt(result.monthlySpending)}/mo`}
-            unlocked={unlocked}
-            color={bandColor(spendPct, 60, 80)}
-            description="Aim to keep this below 70% of your income. Below 60% is excellent, while above 80% can make saving much harder. Every percentage point you reduce gives you more freedom to save, invest, and reach your goals."
-            onClick={() => !unlocked && setUnlocked(true)}
-          />
- 
-          {discretionaryPct != null && (
-            <StatCard
-              label="Discretionary Spending"
-              subtitle="(how much you're spending on wants rather than needs)"
-              value={`${Math.round(discretionaryPct)}%`}
-              unlocked={unlocked}
-              color={bandColor(discretionaryPct, 15, 30)}
-              description="Wants are things you enjoy but could trim without much impact — a good first place to look for extra savings."
-              onClick={() => !unlocked && setUnlocked(true)}
-            />
-          )}
- 
-          {essentialPct != null && (
-            <StatCard
-              label="Essential Spending"
-              subtitle="(groceries, utilities, transport, insurance)"
-              value={`${Math.round(essentialPct)}%`}
-              unlocked={unlocked}
-              color={bandColor(essentialPct, 50, 65)}
-              description="These are costs you need to cover no matter what — the goal isn't to cut these, just to be aware of them."
-              onClick={() => !unlocked && setUnlocked(true)}
-            />
-          )}
- 
-          {result.largestCategoryName && (
-            <StatCard
-              label="Largest Spending Category"
-              value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`}
-              unlocked={unlocked}
-              color={C.textPrimary}
-              description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry—it's simply something to be aware of, not something to stress over."
-              onClick={() => !unlocked && setUnlocked(true)}
-            />
-          )}
- 
-          {score != null && (
-            <div style={{ background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 24, padding: "22px 20px", marginTop: 6, display: "flex", alignItems: "center", gap: 18, boxShadow: `0 12px 32px rgba(0,0,0,0.5)` }}>
-              <div style={{ position: "relative", width: 150, height: 150, flexShrink: 0 }}>
-                <ScoreGauge score={score} color={scoreColor} />
-                {!unlocked && (
-                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#0B0B10", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Icon.Lock size={30} color="#FFD60A" />
-                  </div>
-                )}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Financial Health Score</div>
-                <div style={{ fontSize: 12.5, color: "#C7C7CC", marginTop: 8, lineHeight: 1.5, filter: unlocked ? "none" : "blur(3px)" }}>
+      {score != null && (
+        <div style={{ margin: "0 20px 16px" }}>
+          <button onClick={() => !unlocked && scrollToPricing()} style={{ width: "100%", textAlign: "left", background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 22, padding: "16px 16px", display: "flex", alignItems: "center", gap: 14, boxShadow: `0 10px 26px rgba(0,0,0,0.5)` }}>
+            <ScoreGauge score={score} color={scoreColor} locked={!unlocked} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Financial Health Score</div>
+              {unlocked ? (
+                <div style={{ fontSize: 12, color: "#C7C7CC", marginTop: 6, lineHeight: 1.45 }}>
                   {scoreDescription(score)}
                 </div>
-                {!unlocked && (
-                  <button onClick={() => setUnlocked(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, background: "none", border: "none", padding: 0 }}>
-                    <Icon.Lock size={12} color="#FFD60A" />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#FFD60A" }}>Tap to unlock</span>
-                  </button>
-                )}
-              </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 8 }}>
+                  <Icon.Lock size={12} color="#FFD60A" />
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#FFD60A" }}>Tap to unlock</span>
+                </div>
+              )}
             </div>
-          )}
+          </button>
+        </div>
+      )}
  
-          {unlocked && (
-            <div className="glass" style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18 }}>
-              <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
-                Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
-              </div>
+      {hasIncome && (
+        <div style={{ margin: "0 20px 20px" }}>
+          <button onClick={() => setInsightOpen(!insightOpen)} className="glass" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 18, padding: "14px 16px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Icon.Sparkles size={15} color={C.blue} />
+              <span style={{ fontSize: 13.5, fontWeight: 800, color: C.textPrimary }}>AI Insight</span>
+            </div>
+            <Icon.ChevronDown size={17} color={C.textSecondary} style={{ transform: insightOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+          </button>
+ 
+          {insightOpen && (
+            <div style={{ marginTop: 10 }}>
+              {hasBalanceCheck && (
+                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8 }}>
+                  <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Balance Change (this period)</div>
+                  <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(exact — calculated directly from your statement)</div>
+                  {unlocked ? (
+                    <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: balanceChange >= 0 ? C.green : C.red }}>
+                      {balanceChange >= 0 ? "+" : "-"}{cur}{Math.abs(balanceChange).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </div>
+                  ) : (
+                    <React.Fragment>
+                      <div style={{ fontSize: 27, fontWeight: 800, marginTop: 8, color: C.textSecondary }}>{cur}••••</div>
+                      <button onClick={scrollToPricing} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10, background: "none", border: "none", padding: 0 }}>
+                        <Icon.Lock size={12} color={C.blue} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: C.blue }}>Tap to unlock</span>
+                      </button>
+                    </React.Fragment>
+                  )}
+                </div>
+              )}
+ 
+              <StatCard
+                label="Saving Rate"
+                subtitle="(how much of your income you're saving)"
+                value={`${Math.round(savingsRate)}%`}
+                unlocked={unlocked}
+                color={savingsColor(savingsRate)}
+                description={savingsDescription(savingsRate)}
+                onUnlock={scrollToPricing}
+              />
+ 
+              <StatCard
+                label="Recurring Costs"
+                subtitle="(how much of your income is recurring costs)"
+                value={`${Math.round(recurringPct)}%  ·  ${cur}${fmt(result.totalMonthly)}/mo`}
+                unlocked={unlocked}
+                color={bandColor(recurringPct, 10, 20)}
+                description={recurringDescription(recurringPct)}
+                onUnlock={scrollToPricing}
+              />
+ 
+              <StatCard
+                label="Costs"
+                subtitle="(how much of your income you're spending)"
+                value={`${Math.round(spendPct)}%  ·  ${cur}${fmt(result.monthlySpending)}/mo`}
+                unlocked={unlocked}
+                color={bandColor(spendPct, 60, 80)}
+                description={spendDescription(spendPct)}
+                onUnlock={scrollToPricing}
+              />
+ 
+              {discretionaryPct != null && (
+                <StatCard
+                  label="Discretionary Spending"
+                  subtitle="(how much you're spending on wants rather than needs)"
+                  value={`${Math.round(discretionaryPct)}%`}
+                  unlocked={unlocked}
+                  color={bandColor(discretionaryPct, 15, 30)}
+                  description={discretionaryDescription(discretionaryPct)}
+                  onUnlock={scrollToPricing}
+                />
+              )}
+ 
+              {essentialPct != null && (
+                <StatCard
+                  label="Essential Spending"
+                  subtitle="(groceries, utilities, transport, insurance)"
+                  value={`${Math.round(essentialPct)}%`}
+                  unlocked={unlocked}
+                  color={bandColor(essentialPct, 50, 65)}
+                  description={essentialDescription(essentialPct)}
+                  onUnlock={scrollToPricing}
+                />
+              )}
+ 
+              {result.largestCategoryName && (
+                <StatCard
+                  label="Largest Spending Category"
+                  value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`}
+                  unlocked={unlocked}
+                  color={C.textPrimary}
+                  description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry — it's simply something to be aware of, not something to stress over."
+                  onUnlock={scrollToPricing}
+                />
+              )}
+ 
+              {unlocked && (
+                <div className="glass" style={{ marginTop: 4, padding: "14px 16px", borderRadius: 18 }}>
+                  <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
+                    Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
       )}
  
-      {!unlocked && lockedCount > 0 && (
-        <div style={{ padding: "16px 20px 0" }}>
+      {!unlocked && (
+        <div ref={pricingRef} style={{ padding: "16px 20px 0" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, marginBottom: 10, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>Unlock Everything</div>
  
           <button onClick={() => setUnlocked(true)} className="glass"
-            style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+            style={{ width: "100%", borderRadius: 20, padding: "18px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ textAlign: "left" }}>
               <div style={{ color: C.textPrimary, fontSize: 15, fontWeight: 700 }}>Unlock this report</div>
               <div style={{ color: C.textSecondary, fontSize: 12 }}>One-time · all leaks, scripts & metrics</div>
@@ -652,12 +772,12 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </button>
  
           <button onClick={() => setUnlocked(true)}
-            style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "16px 18px", position: "relative", boxShadow: "0 10px 28px rgba(10,132,255,0.4)", marginBottom: 10 }}>
+            style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "18px 18px", position: "relative", boxShadow: "0 10px 28px rgba(10,132,255,0.4)", marginBottom: 10 }}>
             <div style={{ position: "absolute", top: -9, left: 18, background: "#FFD60A", color: "#1C1C1E", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 8, letterSpacing: 0.3 }}>BEST VALUE</div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ textAlign: "left" }}>
                 <div style={{ color: "#fff", fontSize: 15, fontWeight: 700 }}>Monthly membership</div>
-                <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12 }}>Every future report unlocked, cheaper than one-off</div>
+                <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 12 }}>2 report unlocks every month</div>
               </div>
               <div style={{ textAlign: "right" }}>
                 <div style={{ color: "#fff", fontSize: 18, fontWeight: 800 }}>$6.99</div>
@@ -667,7 +787,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </button>
  
           <button onClick={() => setUnlocked(true)} className="glass"
-            style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            style={{ width: "100%", borderRadius: 20, padding: "18px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ textAlign: "left" }}>
               <div style={{ color: C.textPrimary, fontSize: 15, fontWeight: 700 }}>Share Pack — 2 unlocks</div>
               <div style={{ color: C.textSecondary, fontSize: 12 }}>One for you, one for a friend · save $3</div>
