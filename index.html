@@ -388,18 +388,21 @@ function scoreDescription(score) {
   return band ? band[1] : SCORE_BANDS[SCORE_BANDS.length - 1][1];
 }
 
-function ScoreGauge({ score, color, size = 112, thickness = 11, locked }) {
+function ScoreGauge({ score, color, size = 112, thickness = 11, locked, showLockedLabel }) {
   const inner = size - thickness * 2;
   const deg = locked ? 0 : Math.max(0, Math.min(360, score * 3.6));
-  const lockSize = Math.round(size * (locked ? 0.34 : 0.22));
+  const lockSize = Math.round(size * (locked ? 0.26 : 0.22));
   const digitSize = Math.round(size * 0.25);
   const subSize = Math.max(9, Math.round(size * 0.09));
   return (
     <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
       <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: locked ? "rgba(255,255,255,0.08)" : `conic-gradient(${color} ${deg}deg, rgba(255,255,255,0.08) ${deg}deg)`, boxShadow: locked ? "none" : `0 0 30px ${color}55` }} />
-      <div style={{ position: "absolute", top: thickness, left: thickness, width: inner, height: inner, borderRadius: "50%", background: C.panelSolid, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "absolute", top: thickness, left: thickness, width: inner, height: inner, borderRadius: "50%", background: C.panelSolid, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4 }}>
         {locked ? (
-          <Icon.Lock size={lockSize} color="#FFD60A" />
+          <React.Fragment>
+            <Icon.Lock size={lockSize} color={C.purple} />
+            {showLockedLabel && <div style={{ fontSize: subSize, fontWeight: 800, color: "#C7C5FA", letterSpacing: 0.5, textTransform: "uppercase" }}>Locked</div>}
+          </React.Fragment>
         ) : (
           <React.Fragment>
             <div style={{ fontSize: digitSize, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{score}</div>
@@ -602,17 +605,16 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
       </div>
 
-      <div style={{ margin: "0 20px 14px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-        <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{
-          flex: 1, aspectRatio: unlocked ? "auto" : "1 / 1", textAlign: "center", borderRadius: 20, padding: 16, position: "relative",
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: unlocked ? "flex-start" : "center",
+      <div style={{ margin: "0 20px 14px", display: "flex", gap: 10, alignItems: "stretch" }}>
+        <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{
+          flex: 1, aspectRatio: unlocked ? "auto" : "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative",
+          display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer",
         }}>
-          {!unlocked && <LockPill color="rgba(10,132,255,0.55)" />}
-          <div style={{ fontSize: 40, fontWeight: 800, color: "#fff", letterSpacing: 3, lineHeight: 1 }}>AI</div>
-          <div style={{ fontFamily: "'Bebas Neue', 'Oswald', " + FONT, fontSize: 14, letterSpacing: 2.2, color: "#fff", lineHeight: 1, marginTop: 5 }}>SUMMARY</div>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "#fff", letterSpacing: 1.5, lineHeight: 1 }}>AI</div>
+          <div style={{ fontFamily: "'Bebas Neue', 'Oswald', " + FONT, fontSize: 15, letterSpacing: 1.5, color: C.blue, lineHeight: 1, marginTop: 4 }}>SUMMARY</div>
 
           {unlocked ? (
-            <div style={{ textAlign: "left", marginTop: 14, width: "100%" }}>
+            <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.55 }}>
                 {result.discretionarySummary || "Nice work — we didn't find much one-off discretionary spending worth flagging here."}
               </div>
@@ -631,18 +633,34 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
             </div>
           ) : (
-            <div style={{ fontSize: 11, color: C.textPrimary, marginTop: 10, lineHeight: 1.4 }}>
-              Unlock to discover your biggest opportunities to save more.
-            </div>
+            <React.Fragment>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.textPrimary, marginTop: 10 }}>Your spending patterns suggest a few easy wins…</div>
+              <div style={{ marginTop: 10, filter: "blur(3px)", opacity: 0.55 }}>
+                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "92%", marginBottom: 6 }} />
+                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "76%", marginBottom: 6 }} />
+                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "85%" }} />
+              </div>
+              <button onClick={scrollToPricing} style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(10,132,255,0.14)", border: "1px solid rgba(10,132,255,0.55)", borderRadius: 14, padding: "9px 14px" }}>
+                <Icon.Lock size={12} color={C.blue} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Full Summary</span>
+              </button>
+            </React.Fragment>
           )}
-        </button>
+        </div>
 
         {score != null && (
-          <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ flex: 1, aspectRatio: "1 / 1", textAlign: "left", borderRadius: 20, padding: 12, position: "relative", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {!unlocked && <LockPill color="rgba(255,214,10,0.55)" textColor="#1C1C1E" />}
-            <ScoreGauge score={score} color={scoreColor} locked={!unlocked} size={116} thickness={11} />
-            <div style={{ fontSize: 10, color: "#8E8E93", fontWeight: 700, letterSpacing: 0.3, textTransform: "uppercase", textAlign: "center" }}>Financial Health Score</div>
-          </button>
+          <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ flex: 1, aspectRatio: "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: 0.3, lineHeight: 1.15, textTransform: "uppercase" }}>Financial Health Score</div>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 4 }}>
+              <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={92} thickness={10} />
+            </div>
+            {!unlocked && (
+              <button onClick={scrollToPricing} style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(94,92,230,0.18)", border: "1px solid rgba(94,92,230,0.55)", borderRadius: 14, padding: "9px 14px" }}>
+                <Icon.Lock size={12} color={C.purple} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.purple, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Score</span>
+              </button>
+            )}
+          </div>
         )}
       </div>
 
