@@ -440,7 +440,7 @@ function TechCorner({ color }) {
 
 function StatCard({ label, subtitle, value, color, description, unlocked, onUnlock }) {
   return (
-    <button onClick={() => !unlocked && onUnlock()} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 18, padding: "14px 16px", marginBottom: 8, cursor: unlocked ? "default" : "pointer", display: "block" }}>
+    <button onClick={() => !unlocked && onUnlock()} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,45,146,0.35)", borderRadius: 18, padding: "14px 16px", marginBottom: 8, cursor: unlocked ? "default" : "pointer", display: "block" }}>
       <div style={{ fontSize: 10.5, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
       {subtitle && <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 3, opacity: 0.85 }}>{subtitle}</div>}
       <div style={{ fontSize: 25, fontWeight: 800, marginTop: 7, color: color }}>
@@ -657,9 +657,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "76%", marginBottom: 6 }} />
                 <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "85%" }} />
               </div>
-              <button onClick={scrollToPricing} style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(10,132,255,0.14)", border: "1px solid rgba(10,132,255,0.55)", borderRadius: 14, padding: "9px 14px" }}>
+              <button onClick={scrollToPricing} style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(10,132,255,0.14)", border: "1px solid rgba(10,132,255,0.55)", borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap" }}>
                 <Icon.Lock size={12} color={C.blue} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Full Summary</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
               </button>
             </React.Fragment>
           )}
@@ -683,10 +683,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       {hasIncome && (
         <div style={{ margin: "0 20px 20px" }}>
-          <button onClick={() => setInsightOpen(!insightOpen)} className="glass" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 18, padding: "14px 16px" }}>
+          <button onClick={() => setInsightOpen(!insightOpen)} className="glass" style={{ width: "100%", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 18, padding: "14px 16px", border: "1px solid rgba(255,45,146,0.5)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Icon.Sparkles size={15} color={C.blue} />
-              <span style={{ fontSize: 13.5, fontWeight: 800, color: C.textPrimary }}>AI Insight</span>
+              <Icon.Sparkles size={13} color="#FF2D92" />
+              <span style={{ fontSize: 12, fontWeight: 800, color: "#FFD6EE", letterSpacing: 0.5, textTransform: "uppercase" }}>AI Insight</span>
             </div>
             <Icon.ChevronDown size={17} color={C.textSecondary} style={{ transform: insightOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
           </button>
@@ -694,7 +694,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           {insightOpen && (
             <div style={{ marginTop: 10 }}>
               {hasBalanceCheck && (
-                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8 }}>
+                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8, border: "1px solid rgba(255,45,146,0.35)" }}>
                   <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Balance Change (this period)</div>
                   <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(exact — calculated directly from your statement)</div>
                   {unlocked ? (
@@ -714,7 +714,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
 
               {hasSuspicious && (
-                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8 }}>
+                <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 8, border: "1px solid rgba(255,45,146,0.35)" }}>
                   <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Suspicious Charges</div>
                   <div style={{ fontSize: 12.5, color: C.textSecondary, marginTop: 2, opacity: 0.85 }}>(unusual or unrecognized transactions worth double-checking)</div>
                   <div style={{ fontSize: 25, fontWeight: 800, marginTop: 7, color: C.orange }}>{result.suspiciousCharges.length} flagged</div>
@@ -805,7 +805,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
 
               {unlocked && (
-                <div className="glass" style={{ marginTop: 4, padding: "14px 16px", borderRadius: 18 }}>
+                <div className="glass" style={{ marginTop: 4, padding: "14px 16px", borderRadius: 18, border: "1px solid rgba(255,45,146,0.35)" }}>
                   <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
                     Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
                   </div>
