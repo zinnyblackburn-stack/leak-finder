@@ -215,13 +215,13 @@ function LeakFinder() {
  
 function NavTitle({ children, onBack }) {
   return (
-    <div style={{ padding: "20px 20px 4px" }}>
+    <div style={{ padding: "12px 20px 0" }}>
       {onBack && (
-        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", color: C.blue, fontSize: 17, padding: "6px 0", marginBottom: 2 }}>
-          <Icon.ArrowLeft size={18} /> Back
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 2, background: "none", border: "none", color: C.blue, fontSize: 15, padding: "4px 0" }}>
+          <Icon.ArrowLeft size={16} /> Back
         </button>
       )}
-      <div style={{ fontSize: 32, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6 }}>{children}</div>
+      {children && <div style={{ fontSize: 32, fontWeight: 800, color: C.textPrimary, letterSpacing: -0.6, marginTop: 8 }}>{children}</div>}
     </div>
   );
 }
@@ -428,7 +428,6 @@ function StatCard({ label, subtitle, value, color, description, unlocked, onUnlo
 }
  
 function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, onBack }) {
-  const [incomeNoteOpen, setIncomeNoteOpen] = useState(false);
   const [insightOpen, setInsightOpen] = useState(false);
   const pricingRef = React.useRef(null);
   const scrollToPricing = () => pricingRef.current && pricingRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -452,15 +451,16 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const essentialPct = hasIncome && result.monthlyEssential != null ? (result.monthlyEssential / result.monthlyIncome) * 100 : null;
   const score = hasIncome ? computeScore({ savingsRate, recurringPct, spendPct }) : null;
   const scoreColor = score == null ? C.blue : score >= 70 ? C.green : score >= 40 ? C.orange : C.red;
+  const discretionaryMonthly = result.monthlyDiscretionary != null ? result.monthlyDiscretionary : result.totalMonthly;
+  const savingOpportunityAnnual = Math.round((discretionaryMonthly || 0) * 12);
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
-  const isVariableIncome = result.incomeSteadiness === "variable";
  
   const fmt = (n) => Math.round(n).toLocaleString();
  
   return (
     <div style={{ paddingBottom: 24 }}>
-      <NavTitle onBack={onBack}>Your Report</NavTitle>
+      <NavTitle onBack={onBack} />
  
       <div style={{ margin: "0 20px 10px" }}>
         <button onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ width: "100%", textAlign: "left", borderRadius: 18, padding: "12px 16px", display: "block" }}>
@@ -494,26 +494,16 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             fontSize: 44, letterSpacing: 1, lineHeight: 1, color: "#fff",
             filter: "drop-shadow(0 4px 18px rgba(48,209,88,0.5))",
           }}>
-            {unlocked ? `${cur}${result.totalAnnual?.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : `${cur}•,•••`}<span style={{ fontSize: 16, marginLeft: 6 }}>/year</span>
+            {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span style={{ fontSize: 16, marginLeft: 6 }}>/year</span>
           </div>
           {unlocked ? (
-            <React.Fragment>
-              <div style={{ marginTop: 14, borderRadius: 14, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
-                {sortedItems.map((item, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 14px", borderBottom: i < sortedItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: "#fff" }}>{item.merchant}</span>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#DFFFEA" }}>{cur}{(monthlyOf(item) * 12).toFixed(0)}/yr</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize: 12.5, color: "#E8FFF0", marginTop: 12, lineHeight: 1.5 }}>
-                You don't need to cut everything. Focus on the payments that no longer provide enough value. Even cancelling or reducing just one could make a meaningful difference to your savings over the next year.
-              </div>
-            </React.Fragment>
+            <div style={{ fontSize: 12.5, color: "#E8FFF0", marginTop: 12, lineHeight: 1.5 }}>
+              This is based on your discretionary spending — dining out, shopping, entertainment, and similar wants. You don't need to cut everything: focus on the payments that no longer provide enough value. Even cancelling or reducing just one could make a meaningful difference to your savings over the next year.
+            </div>
           ) : (
             <React.Fragment>
               <div style={{ fontSize: 13, color: "#E8FFF0", marginTop: 10, lineHeight: 1.5 }}>
-                There's significant potential to save more. Unlock to discover your biggest saving opportunities.
+                There's significant potential to save more. Unlock to see exactly where it's coming from.
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 12 }}>
                 <Icon.Lock size={13} color="#fff" />
@@ -524,107 +514,86 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </button>
       </div>
  
-      <div style={{ margin: "0 20px 12px" }}>
-        <div className="glass" style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, borderRadius: 26, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
-          <div style={{ position: "relative", flexShrink: 0, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(10,132,255,0.5)" }}>
-            <Icon.Sparkles size={26} color="#fff" />
-          </div>
-          <div>
-            <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>YEARLY RECURRING COSTS</div>
-            <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-            <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring payments · {cur}{result.totalMonthly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</div>
-          </div>
-        </div>
-      </div>
- 
-      {hasIncome && (
-        <div style={{ margin: "0 20px 12px" }}>
-          <div className="glass" style={{ borderRadius: 20, padding: "16px 18px" }}>
-            <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Average Monthly Income</div>
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-              <div style={{ fontSize: 27, fontWeight: 800, color: C.textPrimary, marginTop: 8 }}>{cur}{result.monthlyIncome?.toLocaleString()}</div>
-              {isVariableIncome && (
-                <button onClick={() => setIncomeNoteOpen(!incomeNoteOpen)} style={{ background: "none", border: "none", padding: 6, marginRight: -6, display: "flex", alignItems: "center" }}>
-                  <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: incomeNoteOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-                </button>
-              )}
+      <div style={{ margin: "0 20px 20px" }}>
+        <div className="glass" style={{ borderRadius: 26, overflow: "hidden" }}>
+          <div style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
+            <div style={{ position: "relative", flexShrink: 0, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(10,132,255,0.5)" }}>
+              <Icon.Sparkles size={26} color="#fff" />
             </div>
-            {isVariableIncome && incomeNoteOpen && (
-              <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 8, lineHeight: 1.5 }}>
-                We noticed freelance- or client-style payments coming in from multiple sources, so this is an average rather than a fixed paycheck — it may vary month to month.
-              </div>
+            <div>
+              <div style={{ color: "#D7E6FF", fontSize: 13, fontWeight: 600 }}>YEARLY RECURRING COSTS</div>
+              <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>{cur}{result.totalAnnual?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div style={{ color: "#D7E6FF", fontSize: 13, marginTop: 2 }}>{result.itemCount} recurring payments · {cur}{result.totalMonthly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</div>
+            </div>
+          </div>
+ 
+          <div style={{ padding: "20px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.24), rgba(255,69,58,0.06))" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <Icon.AlertTriangle size={22} color={C.red} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 17, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
+            </div>
+            <div style={{ fontSize: 13, color: "#F0C9C5", lineHeight: 1.55, marginBottom: 16 }}>
+              Make sure you recognise all of them. Not every recurring payment is a leak. A good approach is to regularly review what you're paying for and only keep what adds value.
+            </div>
+ 
+            <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
+              {visibleItems.map((item, i) => {
+                const tier = costTier(monthlyOf(item));
+                return (
+                  <div key={i}>
+                    <button onClick={() => setExpanded(expanded === i ? null : i)}
+                      style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: costTierColor(tier), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{tier}</span>
+                        </div>
+                        <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
+                            {cur}{monthlyOf(item).toFixed(2)}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/mo</span>
+                          </div>
+                          <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>avg monthly cost</div>
+                          <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
+                            last charge: {cur}{item.lastAmount}{item.frequency === "weekly" ? "/wk" : item.frequency === "annual" ? "/yr" : "/mo"}
+                          </div>
+                        </div>
+                        <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                      </div>
+                    </button>
+                    {expanded === i && (
+                      <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                        <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
+                        <button onClick={() => copyScript(i, item.cancellationScript)}
+                          style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
+                          {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
+                          {copiedIdx === i ? "Copied" : "Copy script"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+ 
+            {!unlocked && lockedCount > 0 && (
+              <button onClick={scrollToPricing}
+                style={{ width: "100%", marginTop: 12, background: "rgba(255,69,58,0.22)", border: "1px solid rgba(255,69,58,0.5)", borderRadius: 14, padding: "13px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <Icon.Lock size={15} color="#FFEDEC" style={{ flexShrink: 0 }} />
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#FF8A80", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>
+                    {lockedCount} Potential Money {lockedCount === 1 ? "Leak" : "Leaks"}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", background: "rgba(255,69,58,0.55)", borderRadius: 6, padding: "3px 7px", textTransform: "uppercase", letterSpacing: 0.4 }}>Locked</span>
+                  <Icon.ChevronDown size={16} color="#FFEDEC" style={{ transform: "rotate(-90deg)" }} />
+                </div>
+              </button>
             )}
           </div>
-        </div>
-      )}
- 
-      <div style={{ margin: "0 20px 20px" }}>
-        <div className="glass" style={{ borderRadius: 22, padding: "22px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.24), rgba(255,69,58,0.06))", border: "2px solid rgba(255,69,58,0.6)", boxShadow: "0 0 44px rgba(255,69,58,0.25)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <Icon.AlertTriangle size={22} color={C.red} style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 17, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
-          </div>
-          <div style={{ fontSize: 13, color: "#F0C9C5", lineHeight: 1.55, marginBottom: 16 }}>
-            Make sure you recognise all of them. Not every recurring payment is a leak. A good approach is to regularly review what you're paying for and only keep what adds value.
-          </div>
- 
-          <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
-            {visibleItems.map((item, i) => {
-              const tier = costTier(monthlyOf(item));
-              return (
-                <div key={i}>
-                  <button onClick={() => setExpanded(expanded === i ? null : i)}
-                    style={{ width: "100%", padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "none", border: "none", borderBottom: i < visibleItems.length - 1 || expanded === i ? `1px solid ${C.separator}` : "none", textAlign: "left" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 15, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: costTierColor(tier), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{tier}</span>
-                      </div>
-                      <div style={{ fontSize: 13, color: C.textSecondary, marginTop: 2 }}>{item.note}</div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                          {cur}{monthlyOf(item).toFixed(2)}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/mo</span>
-                        </div>
-                        <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>avg monthly cost</div>
-                        <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-                          last charge: {cur}{item.lastAmount}{item.frequency === "weekly" ? "/wk" : item.frequency === "annual" ? "/yr" : "/mo"}
-                        </div>
-                      </div>
-                      <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-                    </div>
-                  </button>
-                  {expanded === i && (
-                    <div style={{ padding: "0 16px 16px", borderBottom: i < visibleItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                      <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: 14, padding: 12, fontSize: 13, color: C.textPrimary, lineHeight: 1.5 }}>{item.cancellationScript}</div>
-                      <button onClick={() => copyScript(i, item.cancellationScript)}
-                        style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: C.blue, fontSize: 14, fontWeight: 600, padding: 0 }}>
-                        {copiedIdx === i ? <Icon.Check size={15} /> : <Icon.Copy size={15} />}
-                        {copiedIdx === i ? "Copied" : "Copy script"}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
- 
-          {!unlocked && lockedCount > 0 && (
-            <button onClick={scrollToPricing}
-              style={{ width: "100%", marginTop: 12, background: "rgba(255,69,58,0.22)", border: "1px solid rgba(255,69,58,0.5)", borderRadius: 14, padding: "13px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                <Icon.Lock size={15} color="#FFEDEC" style={{ flexShrink: 0 }} />
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#FF8A80", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "left" }}>
-                  {lockedCount} Potential Money {lockedCount === 1 ? "Leak" : "Leaks"}
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-                <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", background: "rgba(255,69,58,0.55)", borderRadius: 6, padding: "3px 7px", textTransform: "uppercase", letterSpacing: 0.4 }}>Locked</span>
-                <Icon.ChevronDown size={16} color="#FFEDEC" style={{ transform: "rotate(-90deg)" }} />
-              </div>
-            </button>
-          )}
         </div>
       </div>
  
