@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <title>Leak Finder</title>
-
+ 
 <link rel="manifest" href="./manifest.json" />
 <meta name="theme-color" content="#0A0A0C" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
-
+ 
 <style>
   html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -42,21 +42,21 @@
   ::placeholder { color: #6E6E76; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 </style>
-
+ 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 </head>
 <body>
 <div id="root"></div>
-
+ 
 <script type="text/babel" data-presets="react">
 const { useState } = React;
-
+ 
 const Icon = {
   Lock: (p) => (
-    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke={p.color||"currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={p.style}>
+      <rect x="4" y="10" width="16" height="11" rx="2"/><path d="M7 10V6.5a5 5 0 0 1 10 0V10"/>
     </svg>
   ),
   ChevronDown: (p) => (
@@ -95,7 +95,7 @@ const Icon = {
     </svg>
   ),
 };
-
+ 
 const C = {
   blue: "#0A84FF",
   purple: "#5E5CE6",
@@ -108,7 +108,7 @@ const C = {
   panelSolid: "#0B0B10",
 };
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif";
-
+ 
 const SAMPLE_DATA = `01/28/2026  ACME CORP PAYROLL         +3200.00
 02/28/2026  ACME CORP PAYROLL         +3200.00
 03/28/2026  ACME CORP PAYROLL         +3200.00
@@ -151,7 +151,7 @@ const SAMPLE_DATA = `01/28/2026  ACME CORP PAYROLL         +3200.00
 02/01/2026  RENT PAYMENT           -1850.00
 03/01/2026  RENT PAYMENT           -1850.00
 01/01/2026  RENT PAYMENT           -1850.00`;
-
+ 
 function LeakFinder() {
   const [screen, setScreen] = useState("input");
   const [rawText, setRawText] = useState("");
@@ -160,7 +160,7 @@ function LeakFinder() {
   const [expanded, setExpanded] = useState(null);
   const [copiedIdx, setCopiedIdx] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
-
+ 
   async function analyze() {
     if (!rawText.trim()) return;
     setScreen("loading");
@@ -184,15 +184,15 @@ function LeakFinder() {
       setScreen("error");
     }
   }
-
+ 
   function copyScript(idx, script) {
     navigator.clipboard.writeText(script).catch(() => {});
     setCopiedIdx(idx);
     setTimeout(() => setCopiedIdx(null), 1600);
   }
-
+ 
   const confColor = (conf) => (conf === "high" ? C.red : conf === "medium" ? C.orange : C.textSecondary);
-
+ 
   return (
     <div className="app-shell" style={{ fontFamily: FONT }}>
       <div style={{ height: "env(safe-area-inset-top, 0px)" }} />
@@ -209,7 +209,7 @@ function LeakFinder() {
     </div>
   );
 }
-
+ 
 function NavTitle({ children, onBack }) {
   return (
     <div style={{ padding: "20px 20px 4px" }}>
@@ -222,14 +222,14 @@ function NavTitle({ children, onBack }) {
     </div>
   );
 }
-
+ 
 function InputScreen({ rawText, setRawText, onAnalyze }) {
   return (
     <div>
-      <div style={{ padding: "44px 10px 0", textAlign: "center" }}>
+      <div style={{ padding: "28px 10px 0", textAlign: "center" }}>
         <div style={{
           fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
-          fontSize: 42,
+          fontSize: 38,
           lineHeight: 0.95,
           letterSpacing: 2,
           color: "#fff",
@@ -241,44 +241,44 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         }}>
           MONEY LEAK DETECTOR
         </div>
-        <div style={{ fontSize: 11, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 1, textTransform: "uppercase", marginTop: 18, whiteSpace: "nowrap", textAlign: "center" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, fontStyle: "italic", color: C.blue, letterSpacing: 2.4, textTransform: "uppercase", marginTop: 12, whiteSpace: "nowrap", textAlign: "center" }}>
           Know Your Money · Grow Your Wealth
         </div>
       </div>
-      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13.5, marginTop: 24, lineHeight: 1.5 }}>
+      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13, marginTop: 14, lineHeight: 1.45 }}>
         Paste 3–6 months of your bank or card transaction history and let our AI do the rest. You'll receive a detailed, easy-to-understand report revealing where your money goes, what's quietly costing you every month, your Financial Health Score, and personalised insights designed to help you save more money and grow your wealth.
       </p>
-      <div style={{ padding: "16px 20px" }}>
+      <div style={{ padding: "12px 20px 0" }}>
         <textarea value={rawText} onChange={(e) => setRawText(e.target.value)}
           placeholder="Paste your transaction history here..."
           className="glass"
-          style={{ width: "100%", height: 220, borderRadius: 20, padding: 14, fontSize: 14, color: C.textPrimary, fontFamily: "ui-monospace, SFMono-Regular, monospace", resize: "none", outline: "none" }} />
+          style={{ width: "100%", height: "clamp(100px, 20vh, 190px)", borderRadius: 20, padding: 14, fontSize: 14, color: C.textPrimary, fontFamily: "ui-monospace, SFMono-Regular, monospace", resize: "none", outline: "none" }} />
       </div>
-      <div style={{ padding: "0 20px" }}>
+      <div style={{ padding: "10px 20px 0" }}>
         <button onClick={() => setRawText(SAMPLE_DATA)} className="glass"
-          style={{ width: "100%", borderRadius: 16, padding: "13px 0", fontSize: 16, fontWeight: 600, color: C.textPrimary, marginBottom: 10 }}>
+          style={{ width: "100%", borderRadius: 16, padding: "11px 0", fontSize: 15, fontWeight: 600, color: C.textPrimary, marginBottom: 8 }}>
           Try sample data
         </button>
         <button onClick={onAnalyze} disabled={!rawText.trim()}
-          style={{ width: "100%", background: rawText.trim() ? `linear-gradient(135deg, ${C.blue}, ${C.purple})` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "16px 0", fontSize: 17, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
+          style={{ width: "100%", background: rawText.trim() ? `linear-gradient(135deg, ${C.blue}, ${C.purple})` : "rgba(255,255,255,0.08)", border: "none", borderRadius: 16, padding: "14px 0", fontSize: 16.5, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, boxShadow: rawText.trim() ? `0 8px 24px rgba(10,132,255,0.35)` : "none" }}>
           Find My Leaks - Save My Money
         </button>
       </div>
-      <div style={{ padding: "20px 20px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
+      <div style={{ padding: "14px 20px 0", display: "flex", gap: 8, alignItems: "flex-start" }}>
         <Icon.Lock size={14} color={C.textSecondary} />
         <span style={{ fontSize: 12, color: C.textSecondary, lineHeight: 1.4 }}>Nothing is stored. Your data is analyzed once and discarded.</span>
       </div>
     </div>
   );
 }
-
+ 
 const LOADING_STAGES = [
   { at: 0, text: "Analysing your transaction data..." },
-  { at: 2000, text: "Reviewing recurring payments..." },
-  { at: 4000, text: "⚠️ Potential money leaks detected" },
-  { at: 6000, text: "Analysing the best ways to save your money..." },
+  { at: 3000, text: "Reviewing recurring payments..." },
+  { at: 6000, text: "Potential money leaks detected", warn: true },
+  { at: 9000, text: "Analysing the best ways to save your money..." },
 ];
-
+ 
 function LoadingScreen() {
   const [stage, setStage] = useState(0);
   React.useEffect(() => {
@@ -287,6 +287,7 @@ function LoadingScreen() {
     );
     return () => timers.forEach(clearTimeout);
   }, []);
+  const current = LOADING_STAGES[stage];
   return (
     <div style={{ height: "80vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
       <div style={{ animation: "spin 1s linear infinite" }}>
@@ -294,11 +295,14 @@ function LoadingScreen() {
           <path d="M21 12a9 9 0 1 1-9-9" />
         </svg>
       </div>
-      <div style={{ fontSize: 16, fontWeight: 600, color: C.textPrimary, textAlign: "center", padding: "0 30px" }}>{LOADING_STAGES[stage].text}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 16, fontWeight: 600, color: C.textPrimary, textAlign: "center", padding: "0 30px" }}>
+        {current.warn && <Icon.AlertTriangle size={18} color={C.red} style={{ flexShrink: 0 }} />}
+        {current.text}
+      </div>
     </div>
   );
 }
-
+ 
 function ErrorScreen({ message, onBack }) {
   return (
     <div style={{ padding: "60px 24px", textAlign: "center" }}>
@@ -309,7 +313,7 @@ function ErrorScreen({ message, onBack }) {
     </div>
   );
 }
-
+ 
 function bandColor(value, greenMax, yellowMax) {
   if (value <= greenMax) return C.green;
   if (value <= yellowMax) return C.orange;
@@ -342,7 +346,7 @@ function scoreDescription(score) {
   const band = SCORE_BANDS.find(([max]) => score <= max);
   return band ? band[1] : SCORE_BANDS[SCORE_BANDS.length - 1][1];
 }
-
+ 
 function ScoreGauge({ score, color, size = 150, thickness = 14 }) {
   const inner = size - thickness * 2;
   const deg = Math.max(0, Math.min(360, score * 3.6));
@@ -356,7 +360,7 @@ function ScoreGauge({ score, color, size = 150, thickness = 14 }) {
     </div>
   );
 }
-
+ 
 function StatCard({ label, subtitle, value, unlocked, color, description, onClick }) {
   return (
     <button onClick={onClick} className="glass" style={{ width: "100%", textAlign: "left", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20, padding: "16px 18px", marginBottom: 10, cursor: unlocked ? "default" : "pointer", display: "block" }}>
@@ -379,7 +383,7 @@ function StatCard({ label, subtitle, value, unlocked, color, description, onClic
     </button>
   );
 }
-
+ 
 function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, copiedIdx, copyScript, confColor, onBack }) {
   const [incomeNoteOpen, setIncomeNoteOpen] = useState(false);
   const cur = result.currencySymbol || "$";
@@ -391,7 +395,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const visibleItems = unlocked ? result.items : result.items.slice(0, 1);
   const lockedCount = result.items.length - visibleItems.length;
   const hasIncome = result.monthlyIncome > 0;
-
+ 
   const recurringPct = hasIncome ? (result.totalMonthly / result.monthlyIncome) * 100 : 0;
   const spendPct = hasIncome ? (result.monthlySpending / result.monthlyIncome) * 100 : 0;
   const savingsRate = hasIncome ? ((result.monthlyIncome - result.monthlySpending) / result.monthlyIncome) * 100 : 0;
@@ -402,13 +406,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
   const isVariableIncome = result.incomeSteadiness === "variable";
-
+ 
   const fmt = (n) => Math.round(n).toLocaleString();
-
+ 
   return (
     <div style={{ paddingBottom: 24 }}>
       <NavTitle onBack={onBack}>Your Report</NavTitle>
-
+ 
       <div style={{ margin: "0 20px 12px" }}>
         <div className="glass" style={{ background: `linear-gradient(135deg, rgba(10,132,255,0.35), rgba(94,92,230,0.35))`, borderRadius: 26, padding: 24, display: "flex", alignItems: "center", gap: 18 }}>
           <div style={{ position: "relative", flexShrink: 0, width: 70, height: 70, borderRadius: "50%", background: "rgba(255,255,255,0.12)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px rgba(10,132,255,0.5)" }}>
@@ -421,7 +425,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </div>
         </div>
       </div>
-
+ 
       {hasIncome && (
         <div style={{ margin: "0 20px 12px" }}>
           <div className="glass" style={{ borderRadius: 20, padding: "16px 18px" }}>
@@ -442,17 +446,17 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           </div>
         </div>
       )}
-
+ 
       <div style={{ margin: "0 20px 20px" }}>
         <div className="glass" style={{ borderRadius: 22, padding: "20px 18px", background: "linear-gradient(160deg, rgba(255,69,58,0.16), rgba(255,69,58,0.05))", border: "1px solid rgba(255,69,58,0.45)", boxShadow: "0 0 30px rgba(255,69,58,0.12)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: 20 }}>⚠️</span>
+            <Icon.AlertTriangle size={19} color={C.red} style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 16, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
           </div>
           <div style={{ fontSize: 13, color: "#F0C9C5", lineHeight: 1.55, marginBottom: 16 }}>
             Make sure you recognise all of them. Not every recurring payment is a leak. A good approach is to regularly review what you're paying for and only keep what adds value.
           </div>
-
+ 
           <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
             {visibleItems.map((item, i) => (
               <div key={i}>
@@ -468,12 +472,11 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, marginLeft: 8 }}>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: C.textPrimary }}>
-                        {cur}{item.lastAmount}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/{item.frequency === "monthly" ? "mo" : item.frequency === "annual" ? "yr" : "wk"}</span>
+                        {cur}{toMonthlyEquiv(item.avgAmount, item.frequency).toFixed(2)}<span style={{ fontSize: 11, color: C.textSecondary, fontWeight: 400 }}>/mo</span>
                       </div>
-                      <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>this month</div>
+                      <div style={{ fontSize: 10.5, color: C.textSecondary, marginTop: 1 }}>avg monthly cost</div>
                       <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 2 }}>
-                        avg/mo: {cur}{toMonthlyEquiv(item.avgAmount, item.frequency).toFixed(2)}
-                        {item.frequency === "weekly" && <span> (from {cur}{item.avgAmount}/wk)</span>}
+                        last charge: {cur}{item.lastAmount}{item.frequency === "weekly" ? "/wk" : item.frequency === "annual" ? "/yr" : "/mo"}
                       </div>
                     </div>
                     <Icon.ChevronDown size={16} color={C.textSecondary} style={{ transform: expanded === i ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
@@ -492,7 +495,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             ))}
           </div>
-
+ 
           {!unlocked && lockedCount > 0 && (
             <button onClick={() => setUnlocked(true)}
               style={{ width: "100%", marginTop: 12, background: "rgba(255,69,58,0.22)", border: "1px solid rgba(255,69,58,0.5)", borderRadius: 14, padding: "13px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -515,11 +518,11 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           )}
         </div>
       </div>
-
+ 
       {hasIncome && (
         <div style={{ margin: "0 20px 20px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, margin: "6px 4px 8px", textTransform: "uppercase", letterSpacing: 0.4 }}>Financial Health</div>
-
+ 
           {hasBalanceCheck && (
             <div className="glass" style={{ borderRadius: 20, padding: "16px 18px", marginBottom: 10 }}>
               <div style={{ fontSize: 11, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>Balance Change (this period)</div>
@@ -535,7 +538,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
             </div>
           )}
-
+ 
           <StatCard
             label="Savings Rate"
             value={`${Math.round(savingsRate)}%`}
@@ -544,7 +547,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             description="This is the money you're keeping for your future. Aim to save at least 20% of your income, with 30% or more being an excellent target. Every month you save brings you one step closer to financial freedom."
             onClick={() => !unlocked && setUnlocked(true)}
           />
-
+ 
           <StatCard
             label="Recurring Costs / Income"
             subtitle="(monthly commitments, subscriptions, leaks)"
@@ -554,7 +557,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             description="Try to keep recurring costs below 10–15% of your income. Under 10% is excellent, while above 20% can limit your financial flexibility. Keeping monthly commitments low makes it easier to save and adapt to life's changes."
             onClick={() => !unlocked && setUnlocked(true)}
           />
-
+ 
           <StatCard
             label="Costs / Income"
             subtitle="(how much of your income you're spending overall)"
@@ -564,7 +567,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             description="Aim to keep this below 70% of your income. Below 60% is excellent, while above 80% can make saving much harder. Every percentage point you reduce gives you more freedom to save, invest, and reach your goals."
             onClick={() => !unlocked && setUnlocked(true)}
           />
-
+ 
           {discretionaryPct != null && (
             <StatCard
               label="Discretionary Spending"
@@ -576,7 +579,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               onClick={() => !unlocked && setUnlocked(true)}
             />
           )}
-
+ 
           {essentialPct != null && (
             <StatCard
               label="Essential Spending"
@@ -588,7 +591,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               onClick={() => !unlocked && setUnlocked(true)}
             />
           )}
-
+ 
           {result.largestCategoryName && (
             <StatCard
               label="Largest Spending Category"
@@ -599,13 +602,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               onClick={() => !unlocked && setUnlocked(true)}
             />
           )}
-
+ 
           {score != null && (
             <div style={{ background: C.panelSolid, border: "1px solid rgba(255,255,255,0.10)", borderRadius: 24, padding: "22px 20px", marginTop: 6, display: "flex", alignItems: "center", gap: 18, boxShadow: `0 12px 32px rgba(0,0,0,0.5)` }}>
               <div style={{ position: "relative", width: 150, height: 150, flexShrink: 0 }}>
                 <ScoreGauge score={score} color={scoreColor} />
                 {!unlocked && (
-                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "rgba(11,11,16,0.95)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#0B0B10", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Icon.Lock size={30} color="#FFD60A" />
                   </div>
                 )}
@@ -624,7 +627,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             </div>
           )}
-
+ 
           {unlocked && (
             <div className="glass" style={{ marginTop: 12, padding: "14px 16px", borderRadius: 18 }}>
               <div style={{ fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
@@ -634,11 +637,11 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           )}
         </div>
       )}
-
+ 
       {!unlocked && lockedCount > 0 && (
         <div style={{ padding: "16px 20px 0" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.textSecondary, marginBottom: 10, marginLeft: 4, textTransform: "uppercase", letterSpacing: 0.4 }}>Unlock Everything</div>
-
+ 
           <button onClick={() => setUnlocked(true)} className="glass"
             style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
             <div style={{ textAlign: "left" }}>
@@ -647,7 +650,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             </div>
             <div style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800 }}>$9</div>
           </button>
-
+ 
           <button onClick={() => setUnlocked(true)}
             style={{ width: "100%", background: `linear-gradient(135deg, ${C.blue}, ${C.purple})`, border: "none", borderRadius: 20, padding: "16px 18px", position: "relative", boxShadow: "0 10px 28px rgba(10,132,255,0.4)", marginBottom: 10 }}>
             <div style={{ position: "absolute", top: -9, left: 18, background: "#FFD60A", color: "#1C1C1E", fontSize: 10, fontWeight: 800, padding: "3px 10px", borderRadius: 8, letterSpacing: 0.3 }}>BEST VALUE</div>
@@ -662,7 +665,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             </div>
           </button>
-
+ 
           <button onClick={() => setUnlocked(true)} className="glass"
             style={{ width: "100%", borderRadius: 20, padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ textAlign: "left" }}>
@@ -671,17 +674,17 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             </div>
             <div style={{ color: C.textPrimary, fontSize: 18, fontWeight: 800 }}>$15</div>
           </button>
-
+ 
           <div style={{ textAlign: "center", fontSize: 11, color: C.textSecondary, marginTop: 10 }}>Demo only, no real charge yet</div>
         </div>
       )}
     </div>
   );
 }
-
+ 
 ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
 </script>
-
+ 
 <script>
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
@@ -692,3 +695,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
 </script>
 </body>
 </html>
+ 
