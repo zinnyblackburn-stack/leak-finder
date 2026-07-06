@@ -485,7 +485,6 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           background: "linear-gradient(150deg, rgba(48,209,88,0.30), rgba(10,132,255,0.18))",
           boxShadow: "0 0 40px rgba(48,209,88,0.20), 0 12px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12)", position: "relative", overflow: "hidden",
         }}>
-          {!unlocked && <LockPill color="rgba(48,209,88,0.65)" />}
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingUp size={15} color="#6FFFA0" />
             <span style={{ fontSize: 12, fontWeight: 800, color: "#DFFFEA", letterSpacing: 0.5, textTransform: "uppercase" }}>Biggest Saving Opportunity</span>
@@ -493,24 +492,31 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
             {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span style={{ fontSize: 14, marginLeft: 4, fontWeight: 600 }}>/year</span>
           </div>
+
           {unlocked ? (
             <React.Fragment>
               <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
-                Based on your discretionary spending. Start with these:
+                Our AI found you could save up to {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by cutting down on the following costs:
               </div>
               <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
-                {sortedItems.map((item, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < sortedItems.length - 1 ? `1px solid ${C.separator}` : "none" }}>
-                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>{item.merchant}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#DFFFEA" }}>{cur}{(monthlyOf(item) * 12).toFixed(0)}/yr</span>
+                {(result.discretionaryExamples || []).map((ex, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < result.discretionaryExamples.length - 1 ? `1px solid ${C.separator}` : "none" }}>
+                    <span style={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>{ex.description}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#DFFFEA" }}>{cur}{ex.amount}</span>
                   </div>
                 ))}
               </div>
             </React.Fragment>
           ) : (
-            <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
-              There's significant potential to save more. Unlock to see where.
-            </div>
+            <React.Fragment>
+              <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
+                Our AI found you could save {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by...
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, background: "rgba(48,209,88,0.65)", borderRadius: 10, padding: "7px 12px" }}>
+                <Icon.Lock size={12} color="#fff" />
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>Unlock the blueprint</span>
+              </div>
+            </React.Fragment>
           )}
         </button>
       </div>
