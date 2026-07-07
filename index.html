@@ -288,16 +288,25 @@ function NavTitle({ children, onBack }) {
 function InputScreen({ rawText, setRawText, onAnalyze }) {
   const titleRef = React.useRef(null);
   const sloganRef = React.useRef(null);
+  const paraRef = React.useRef(null);
+  const [titleScale, setTitleScale] = useState(1);
   const [sloganScale, setSloganScale] = useState(1);
+  const titleScaleRef = React.useRef(1);
+  titleScaleRef.current = titleScale;
   const sloganScaleRef = React.useRef(1);
   sloganScaleRef.current = sloganScale;
 
   React.useLayoutEffect(() => {
     function measure() {
-      if (titleRef.current && sloganRef.current) {
-        const titleWidth = titleRef.current.getBoundingClientRect().width;
+      if (titleRef.current && sloganRef.current && paraRef.current) {
+        const naturalTitleWidth = titleRef.current.getBoundingClientRect().width / titleScaleRef.current;
+        const targetWidth = paraRef.current.getBoundingClientRect().width;
+        const newTitleScale = naturalTitleWidth > 0 ? targetWidth / naturalTitleWidth : 1;
+        setTitleScale(newTitleScale);
+
+        const titleRenderedWidth = naturalTitleWidth * newTitleScale;
         const naturalSloganWidth = sloganRef.current.getBoundingClientRect().width / sloganScaleRef.current;
-        if (naturalSloganWidth > 0) setSloganScale(titleWidth / naturalSloganWidth);
+        if (naturalSloganWidth > 0) setSloganScale(titleRenderedWidth / naturalSloganWidth);
       }
     }
     measure();
@@ -308,19 +317,20 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
 
   return (
     <div>
-      <div style={{ padding: "28px 10px 0", textAlign: "center" }}>
+      <div style={{ padding: "28px 20px 0", textAlign: "center" }}>
         <div ref={titleRef} style={{
           fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
-          fontSize: 34,
+          fontSize: 42,
           lineHeight: 0.95,
           letterSpacing: 1,
           color: "#fff",
-          background: "linear-gradient(180deg, #FFFFFF 0%, #BFD6FF 100%)",
+          background: "linear-gradient(180deg, #FFFFFF 0%, #3E5D8C 100%)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
           backgroundClip: "text",
-          filter: "drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
+          filter: "drop-shadow(0 0 10px rgba(255,255,255,0.5)) drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
           display: "inline-block", whiteSpace: "nowrap",
+          transform: `scaleX(${titleScale})`, transformOrigin: "center",
         }}>
           MONEY LEAK DETECTOR
         </div>
@@ -330,7 +340,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           </div>
         </div>
       </div>
-      <p style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13, marginTop: 14, lineHeight: 1.45 }}>
+      <p ref={paraRef} style={{ padding: "0 20px", color: C.textSecondary, fontSize: 13, marginTop: 14, lineHeight: 1.45 }}>
         Paste 3–6 months of your bank or card transaction history and let our AI do the rest. You'll receive a detailed, easy-to-understand report revealing where your money goes, what's quietly costing you every month, your Financial Health Score, and personalised insights designed to help you save more money and grow your wealth.
       </p>
       <div style={{ padding: "12px 20px 0" }}>
@@ -737,7 +747,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden",
         }}>
           <div className="glass-swirl"></div>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" }}>AI Summary</div>
+                    <div style={{ width: "100%", fontSize: 11, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap", textAlign: "left" }}>AI Summary</div>
 
           {unlocked ? (
             <div style={{ marginTop: 12 }}>
@@ -768,7 +778,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 </div>
               </div>
               <div style={{ flex: 1 }}></div>
-              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 13, padding: "8px 12px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 13, padding: "8px 12px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <div className="glass-swirl"></div>
                 <Icon.Lock size={11} color={C.blue} />
                 <span style={{ fontSize: 10.5, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
@@ -780,7 +790,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         {score != null && (
           <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ flex: 1, height: 188, textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
             <div className="glass-swirl"></div>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" }}>Financial Health Score</div>
+                        <div style={{ width: "100%", fontSize: 10, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.1, textTransform: "uppercase", whiteSpace: "nowrap", textAlign: "left" }}>Financial Health Score</div>
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 4 }}>
               <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={92} thickness={10} />
             </div>
