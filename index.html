@@ -24,14 +24,14 @@
   textarea { font-family: inherit; }
   #root { min-height: 100vh; display: flex; justify-content: center; position: relative; z-index: 1; }
   .bg-fixed {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: 0;
+    position: fixed; top: 0; left: 50%; width: 100%; max-width: 480px; height: 100vh; height: 100lvh; z-index: 0;
     background-color: #030305;
     background-image: url('./bg.jpg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
+    -webkit-transform: translateX(-50%) translateZ(0);
+    transform: translateX(-50%) translateZ(0);
     will-change: transform;
   }
   .app-shell {
@@ -622,11 +622,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
         }}>
           <div className="glass-swirl"></div>
-                    <TechCornerHex color="#6FFFA0" />
           <div style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-            <Icon.TrendingUp size={15} color="#6FFFA0" />
-            <span style={{ fontSize: 12, fontWeight: 800, color: "#DFFFEA", letterSpacing: 0.5, textTransform: "uppercase" }}>Biggest Saving Opportunity</span>
+            <Icon.TrendingUp size={16} color="#6FFFA0" />
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#EAFFF3", letterSpacing: 0.5, textTransform: "uppercase" }}>You Could Save</span>
           </div>
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
             {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span style={{ fontSize: 14, marginLeft: 4, fontWeight: 600 }}>/year</span>
@@ -665,10 +664,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       <div style={{ margin: "0 20px 14px" }}>
         <div className="glass tint-red" style={{ borderRadius: 26, padding: "18px 18px", position: "relative", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
-                    <TechCorner color="#FF8A80" />
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-            <Icon.TrendingDown size={15} color="#FF8A80" />
-            <span style={{ fontSize: 12, fontWeight: 800, color: "#FFD9D6", letterSpacing: 0.5, textTransform: "uppercase" }}>Yearly Recurring Costs</span>
+            <Icon.TrendingDown size={16} color="#FF8A80" />
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#FFE5E2", letterSpacing: 0.5, textTransform: "uppercase" }}>What You Spend On Subscriptions</span>
           </div>
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
             {cur}{result.totalAnnual?.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span style={{ fontSize: 14, marginLeft: 4, fontWeight: 600 }}>/year</span>
