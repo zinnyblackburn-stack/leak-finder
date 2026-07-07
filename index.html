@@ -300,7 +300,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
       sloganRef.current.style.transform = "scaleX(1)";
       const containerWidth = paraRef.current.getBoundingClientRect().width + 40;
       const widthRatio = Math.min(1, Math.max(0, (containerWidth - 390) / (480 - 390)));
-      const targetMultiplier = 0.97 + widthRatio * 0.03;
+      const targetMultiplier = 1.0;
       const stretchAmount = 1.20 + widthRatio * 0.10;
       setTitleStretchY(stretchAmount);
       const naturalTitleWidth = titleRef.current.getBoundingClientRect().width;
@@ -363,11 +363,12 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         <button onClick={onAnalyze} disabled={!rawText.trim()}
           style={{
             width: "100%",
-            background: rawText.trim() ? `linear-gradient(125deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 22%), linear-gradient(115deg, #4FC3FF 0%, #0A84FF 32%, #6A5CE6 68%, #A45EE5 100%)` : "rgba(255,255,255,0.08)",
+            background: `linear-gradient(125deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 22%), linear-gradient(115deg, #4FC3FF 0%, #0A84FF 32%, #6A5CE6 68%, #A45EE5 100%)`,
             border: "none", outline: "none", borderRadius: 16, padding: "15px 0", fontSize: 16.5, fontWeight: 700,
-            color: rawText.trim() ? "#fff" : C.textSecondary,
-            boxShadow: rawText.trim() ? "0 8px 24px rgba(10,132,255,0.35)" : "none",
-            transition: "background 300ms ease, box-shadow 300ms ease, color 300ms ease",
+            color: "#fff",
+            boxShadow: "0 8px 24px rgba(10,132,255,0.35)",
+            opacity: rawText.trim() ? 1 : 0.5,
+            transition: "opacity 300ms ease",
           }}>
           Find My Leaks - Save My Money
         </button>
