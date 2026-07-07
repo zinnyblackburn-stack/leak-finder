@@ -39,8 +39,8 @@
     position: relative;
     background:
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.018 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") padding-box,
-      linear-gradient(rgba(2,3,9,0.58), rgba(2,3,9,0.58)) padding-box,
-      linear-gradient(135deg, rgba(90,175,255,0.14), rgba(190,120,255,0.09), rgba(255,140,200,0.12)) border-box;
+      linear-gradient(rgba(10,13,24,0.48), rgba(10,13,24,0.48)) padding-box,
+      linear-gradient(135deg, rgba(90,175,255,0.20), rgba(190,120,255,0.14), rgba(255,140,200,0.18)) border-box;
     background-blend-mode: overlay, normal, normal;
     backdrop-filter: blur(20px) saturate(220%);
     -webkit-backdrop-filter: blur(20px) saturate(220%);
@@ -54,12 +54,12 @@
   .glass:hover { filter: saturate(1.06); }
   .glass-swirl { position: absolute; inset: -25%; pointer-events: none; z-index: -1;
     background: conic-gradient(from 0deg at 50% 50%,
-      rgba(120,200,255,0.16) 0%,
-      rgba(160,120,255,0.15) 20%,
-      rgba(255,120,200,0.14) 40%,
-      rgba(255,205,130,0.11) 60%,
-      rgba(160,255,190,0.13) 80%,
-      rgba(120,200,255,0.16) 100%);
+      rgba(120,200,255,0.21) 0%,
+      rgba(160,120,255,0.20) 20%,
+      rgba(255,120,200,0.19) 40%,
+      rgba(255,205,130,0.15) 60%,
+      rgba(160,255,190,0.18) 80%,
+      rgba(120,200,255,0.21) 100%);
     filter: blur(18px) saturate(150%);
   }
   ::placeholder { color: #6E6E76; }
@@ -600,9 +600,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
                 Our AI found you could save {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by...
               </div>
-              <button onClick={scrollToPricing} style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, background: "rgba(48,209,88,0.15)", border: "1px solid rgba(48,209,88,0.55)", borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap" }}>
-                <Icon.Lock size={12} color="#6FFFA0" />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#6FFFA0", letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock the Blueprint</span>
+              <button onClick={scrollToPricing} className="glass" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+                <div className="glass-swirl"></div>
+                <Icon.Lock size={12} color="#6FFFA0" style={{ position: "relative" }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#6FFFA0", letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock the Blueprint</span>
               </button>
             </React.Fragment>
           )}
@@ -729,7 +730,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "76%", marginBottom: 6 }} />
                 <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "85%" }} />
               </div>
-              <button onClick={scrollToPricing} style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(10,132,255,0.14)", border: "1px solid rgba(10,132,255,0.55)", borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+                <div className="glass-swirl"></div>
                 <Icon.Lock size={12} color={C.blue} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
               </button>
@@ -745,7 +747,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={92} thickness={10} />
             </div>
             {!unlocked && (
-              <button onClick={scrollToPricing} style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(94,92,230,0.18)", border: "1px solid rgba(94,92,230,0.55)", borderRadius: 14, padding: "9px 14px" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", position: "relative", overflow: "hidden" }}>
+                <div className="glass-swirl"></div>
                 <Icon.Lock size={12} color={C.purple} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: C.purple, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Score</span>
               </button>
