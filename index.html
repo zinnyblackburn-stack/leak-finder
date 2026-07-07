@@ -737,7 +737,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden",
         }}>
           <div className="glass-swirl"></div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>AI Summary</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" }}>AI Summary</div>
 
           {unlocked ? (
             <div style={{ marginTop: 12 }}>
@@ -760,15 +760,18 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             </div>
           ) : (
             <React.Fragment>
-              <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>Your spending patterns suggest…</div>
-              <div style={{ marginTop: 10, filter: "blur(3px)", opacity: 0.55 }}>
-                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "90%", marginBottom: 6 }} />
-                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "70%" }} />
+              <div>
+                <div style={{ fontSize: 10.5, color: "#E8FFF0", marginTop: 6, lineHeight: 1.35 }}>Your spending patterns suggest…</div>
+                <div style={{ marginTop: 8, filter: "blur(3px)", opacity: 0.55 }}>
+                  <div style={{ height: 6, background: "#8E8E93", borderRadius: 4, width: "90%", marginBottom: 5 }} />
+                  <div style={{ height: 6, background: "#8E8E93", borderRadius: 4, width: "70%" }} />
+                </div>
               </div>
-              <button onClick={scrollToPricing} className="glass" style={{ marginTop: 10, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+              <div style={{ flex: 1 }}></div>
+              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 13, padding: "8px 12px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <div className="glass-swirl"></div>
-                <Icon.Lock size={12} color={C.blue} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
+                <Icon.Lock size={11} color={C.blue} />
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
               </button>
             </React.Fragment>
           )}
@@ -782,10 +785,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={92} thickness={10} />
             </div>
             {!unlocked && (
-              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 13, padding: "8px 12px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <div className="glass-swirl"></div>
-                <Icon.Lock size={12} color="#C3B8FF" />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#C3B8FF", letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Score</span>
+                <Icon.Lock size={11} color="#C3B8FF" />
+                <span style={{ fontSize: 10.5, fontWeight: 800, color: "#C3B8FF", letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Score</span>
               </button>
             )}
           </div>
