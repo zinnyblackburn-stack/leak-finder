@@ -347,9 +347,15 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           <div className="glass-swirl"></div>
                     Try sample data
         </button>
-        <button onClick={onAnalyze} disabled={!rawText.trim()} className={rawText.trim() ? "glass" : ""}
-          style={{ width: "100%", background: rawText.trim() ? "none" : "rgba(255,255,255,0.08)", border: rawText.trim() ? undefined : "none", borderRadius: 16, padding: "15px 0", fontSize: 16.5, fontWeight: 700, color: rawText.trim() ? "#fff" : C.textSecondary, position: "relative", overflow: "hidden" }}>
-          {rawText.trim() && (<div className="glass-swirl"></div>)}
+        <button onClick={onAnalyze} disabled={!rawText.trim()}
+          style={{
+            width: "100%",
+            background: rawText.trim() ? `linear-gradient(125deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 22%), linear-gradient(115deg, #4FC3FF 0%, #0A84FF 32%, #6A5CE6 68%, #A45EE5 100%)` : "rgba(255,255,255,0.08)",
+            border: "none", outline: "none", borderRadius: 16, padding: "15px 0", fontSize: 16.5, fontWeight: 700,
+            color: rawText.trim() ? "#fff" : C.textSecondary,
+            boxShadow: rawText.trim() ? "0 8px 24px rgba(10,132,255,0.35)" : "none",
+            transition: "background 300ms ease, box-shadow 300ms ease, color 300ms ease",
+          }}>
           Find My Leaks - Save My Money
         </button>
       </div>
@@ -727,11 +733,11 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       <div style={{ margin: "0 20px 14px", display: "flex", gap: 10, alignItems: "stretch" }}>
         <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-blue" style={{
-          flex: 1, minHeight: 168, textAlign: "left", borderRadius: 20, padding: 16, position: "relative",
+          flex: 1, aspectRatio: unlocked ? "auto" : "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative",
           display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden",
         }}>
           <div className="glass-swirl"></div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.5, textTransform: "uppercase" }}>AI Summary</div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.5, textTransform: "uppercase", whiteSpace: "nowrap" }}>AI Summary</div>
 
           {unlocked ? (
             <div style={{ marginTop: 12 }}>
@@ -756,11 +762,10 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             <React.Fragment>
               <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>Your spending patterns suggest…</div>
               <div style={{ marginTop: 10, filter: "blur(3px)", opacity: 0.55 }}>
-                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "92%", marginBottom: 6 }} />
-                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "76%", marginBottom: 6 }} />
-                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "85%" }} />
+                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "90%", marginBottom: 6 }} />
+                <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "70%" }} />
               </div>
-              <button onClick={scrollToPricing} className="glass" style={{ marginTop: "auto", alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ marginTop: 10, alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <div className="glass-swirl"></div>
                 <Icon.Lock size={12} color={C.blue} />
                 <span style={{ fontSize: 11, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
@@ -770,14 +775,14 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
 
         {score != null && (
-          <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ flex: 1, minHeight: 168, textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
+          <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ flex: 1, aspectRatio: "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
             <div className="glass-swirl"></div>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.5, textTransform: "uppercase" }}>Financial Health Score</div>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" }}>Financial Health Score</div>
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 4 }}>
               <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={92} thickness={10} />
             </div>
             {!unlocked && (
-              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", position: "relative", overflow: "hidden" }}>
+              <button onClick={scrollToPricing} className="glass" style={{ alignSelf: "center", display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <div className="glass-swirl"></div>
                 <Icon.Lock size={12} color="#C3B8FF" />
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#C3B8FF", letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Score</span>
