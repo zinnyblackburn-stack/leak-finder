@@ -301,7 +301,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
       const containerWidth = paraRef.current.getBoundingClientRect().width + 40;
       const widthRatio = Math.min(1, Math.max(0, (containerWidth - 390) / (480 - 390)));
       const targetMultiplier = 1.0;
-      const stretchAmount = 1.20 + widthRatio * 0.10;
+      const stretchAmount = 1.30 + widthRatio * 0.10;
       setTitleStretchY(stretchAmount);
       const naturalTitleWidth = titleRef.current.getBoundingClientRect().width;
       const targetWidth = paraRef.current.getBoundingClientRect().width * targetMultiplier;
@@ -323,7 +323,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
       <div style={{ padding: "28px 20px 0", textAlign: "center" }}>
         <div ref={titleRef} style={{
           fontFamily: "'Bebas Neue', 'Oswald', " + FONT,
-          fontSize: 42,
+          fontSize: 48,
           lineHeight: 0.95,
           letterSpacing: 1,
           color: "#fff",
@@ -367,8 +367,6 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
             border: "none", outline: "none", borderRadius: 16, padding: "15px 0", fontSize: 16.5, fontWeight: 700,
             color: "#fff",
             boxShadow: "0 8px 24px rgba(10,132,255,0.35)",
-            opacity: rawText.trim() ? 1 : 0.5,
-            transition: "opacity 300ms ease",
           }}>
           Find My Leaks - Save My Money
         </button>
