@@ -733,7 +733,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       <div style={{ margin: "0 20px 14px", display: "flex", gap: 10, alignItems: "stretch" }}>
         <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-blue" style={{
-          flex: 1, aspectRatio: unlocked ? "auto" : "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative",
+          flex: 1, height: unlocked ? "auto" : 188, textAlign: "left", borderRadius: 20, padding: 16, position: "relative",
           display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden",
         }}>
           <div className="glass-swirl"></div>
@@ -778,7 +778,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         </div>
 
         {score != null && (
-          <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ flex: 1, aspectRatio: "6 / 5", textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
+          <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ flex: 1, height: 188, textAlign: "left", borderRadius: 20, padding: 16, position: "relative", display: "flex", flexDirection: "column", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
             <div className="glass-swirl"></div>
                         <div style={{ fontSize: 11, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" }}>Financial Health Score</div>
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 4 }}>
