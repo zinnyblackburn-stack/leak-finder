@@ -291,14 +291,20 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
   const paraRef = React.useRef(null);
   const [titleScale, setTitleScale] = useState(1);
   const [sloganScale, setSloganScale] = useState(1);
+  const [titleStretchY, setTitleStretchY] = useState(1.2);
 
   React.useLayoutEffect(() => {
     function measure() {
       if (!titleRef.current || !sloganRef.current || !paraRef.current) return;
       titleRef.current.style.transform = "scaleX(1) scaleY(1)";
       sloganRef.current.style.transform = "scaleX(1)";
+      const containerWidth = paraRef.current.getBoundingClientRect().width + 40;
+      const widthRatio = Math.min(1, Math.max(0, (containerWidth - 390) / (480 - 390)));
+      const targetMultiplier = 0.97 + widthRatio * 0.03;
+      const stretchAmount = 1.20 + widthRatio * 0.10;
+      setTitleStretchY(stretchAmount);
       const naturalTitleWidth = titleRef.current.getBoundingClientRect().width;
-      const targetWidth = paraRef.current.getBoundingClientRect().width * 0.92;
+      const targetWidth = paraRef.current.getBoundingClientRect().width * targetMultiplier;
       const newTitleScale = naturalTitleWidth > 0 ? targetWidth / naturalTitleWidth : 1;
       const titleRenderedWidth = naturalTitleWidth * newTitleScale;
       const naturalSloganWidth = sloganRef.current.getBoundingClientRect().width;
@@ -327,7 +333,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           backgroundClip: "text",
           filter: "drop-shadow(0 0 10px rgba(255,255,255,0.5)) drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
           display: "inline-block", whiteSpace: "nowrap",
-          transform: `scaleX(${titleScale}) scaleY(1.12)`, transformOrigin: "center",
+          transform: `scaleX(${titleScale}) scaleY(${titleStretchY})`, transformOrigin: "center",
         }}>
           MONEY LEAK DETECTOR
         </div>
