@@ -291,23 +291,20 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
   const paraRef = React.useRef(null);
   const [titleScale, setTitleScale] = useState(1);
   const [sloganScale, setSloganScale] = useState(1);
-  const titleScaleRef = React.useRef(1);
-  titleScaleRef.current = titleScale;
-  const sloganScaleRef = React.useRef(1);
-  sloganScaleRef.current = sloganScale;
 
   React.useLayoutEffect(() => {
     function measure() {
-      if (titleRef.current && sloganRef.current && paraRef.current) {
-        const naturalTitleWidth = titleRef.current.getBoundingClientRect().width / titleScaleRef.current;
-        const targetWidth = paraRef.current.getBoundingClientRect().width;
-        const newTitleScale = naturalTitleWidth > 0 ? targetWidth / naturalTitleWidth : 1;
-        setTitleScale(newTitleScale);
-
-        const titleRenderedWidth = naturalTitleWidth * newTitleScale;
-        const naturalSloganWidth = sloganRef.current.getBoundingClientRect().width / sloganScaleRef.current;
-        if (naturalSloganWidth > 0) setSloganScale(titleRenderedWidth / naturalSloganWidth);
-      }
+      if (!titleRef.current || !sloganRef.current || !paraRef.current) return;
+      titleRef.current.style.transform = "scaleX(1) scaleY(1)";
+      sloganRef.current.style.transform = "scaleX(1)";
+      const naturalTitleWidth = titleRef.current.getBoundingClientRect().width;
+      const targetWidth = paraRef.current.getBoundingClientRect().width * 0.92;
+      const newTitleScale = naturalTitleWidth > 0 ? targetWidth / naturalTitleWidth : 1;
+      const titleRenderedWidth = naturalTitleWidth * newTitleScale;
+      const naturalSloganWidth = sloganRef.current.getBoundingClientRect().width;
+      const newSloganScale = naturalSloganWidth > 0 ? titleRenderedWidth / naturalSloganWidth : 1;
+      setTitleScale(newTitleScale);
+      setSloganScale(newSloganScale);
     }
     measure();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
@@ -330,7 +327,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           backgroundClip: "text",
           filter: "drop-shadow(0 0 10px rgba(255,255,255,0.5)) drop-shadow(0 6px 22px rgba(10,132,255,0.4))",
           display: "inline-block", whiteSpace: "nowrap",
-          transform: `scaleX(${titleScale})`, transformOrigin: "center",
+          transform: `scaleX(${titleScale}) scaleY(1.12)`, transformOrigin: "center",
         }}>
           MONEY LEAK DETECTOR
         </div>
