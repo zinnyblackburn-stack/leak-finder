@@ -678,16 +678,18 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 const isLast = i === sortedItems.length - 1;
 
                 if (!isFree) {
+                  const w1 = [64, 82, 52, 96, 70][i % 5];
+                  const w2 = [46, 60, 38][i % 3];
                   return (
                     <div key={i} onClick={scrollToPricing}
                       style={{ width: "100%", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: isLast ? "none" : `1px solid ${C.separator}`, cursor: "pointer" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, filter: "blur(4px)" }}>
-                        <span style={{ fontSize: 14.5, fontWeight: 600, color: C.textPrimary }}>{item.merchant}</span>
-                        <span style={{ fontSize: 9.5, fontWeight: 700, color: "#fff", background: costTierColor(tier), borderRadius: 6, padding: "2px 6px", textTransform: "uppercase" }}>{tier}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{ height: 13, width: w1, background: "#4A4A52", borderRadius: 4 }} />
+                        <div style={{ height: 13, width: 30, background: "#3E3E44", borderRadius: 4 }} />
                       </div>
-                      <div style={{ textAlign: "right", filter: "blur(4px)" }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>{cur}{item.lastAmount}</div>
-                        <div style={{ fontSize: 9.5, color: C.textSecondary, marginTop: 1 }}>last month</div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+                        <div style={{ height: 13, width: w2, background: "#4A4A52", borderRadius: 4 }} />
+                        <div style={{ height: 9, width: 44, background: "#3E3E44", borderRadius: 3 }} />
                       </div>
                     </div>
                   );
@@ -848,11 +850,6 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             ) : (
               <React.Fragment>
                 <div style={{ fontSize: 12, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>Your spending patterns suggest…</div>
-                <div style={{ marginTop: 10, filter: "blur(3px)", opacity: 0.55, maxWidth: 260 }}>
-                  <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "92%", marginBottom: 6 }} />
-                  <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "76%", marginBottom: 6 }} />
-                  <div style={{ height: 7, background: "#8E8E93", borderRadius: 4, width: "85%" }} />
-                </div>
                 <button onClick={scrollToPricing} className="glass" style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "10px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                   <div className="glass-swirl"></div>
                   <Icon.Lock size={12} color={C.blue} />
