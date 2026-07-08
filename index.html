@@ -606,7 +606,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       <NavTitle onBack={onBack} />
 
       <div style={{ margin: "0 20px 12px" }}>
-        <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-green" style={{
+        <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{
           width: "100%", textAlign: "left", display: "block", borderRadius: 26, padding: "18px 18px",
           position: "relative", overflow: "hidden", cursor: unlocked ? "default" : "pointer",
         }}>
@@ -651,7 +651,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       </div>
 
       <div style={{ margin: "0 20px 14px" }}>
-        <div className="glass tint-red" style={{ borderRadius: 26, padding: "18px 18px", position: "relative", overflow: "hidden" }}>
+        <div className="glass" style={{ borderRadius: 26, padding: "18px 18px", position: "relative", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingDown size={16} color="#FF8A80" />
@@ -668,7 +668,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               <span style={{ fontSize: 15.5, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
             </div>
             <div style={{ fontSize: 12.5, color: "#F0C9C5", lineHeight: 1.45, marginBottom: 12 }}>
-              Not every subscription is a leak. Review and only keep what you use.
+              Some of these might be leaks. Cancel what you don't recognise. Not every subscription is a leak. Review and only keep what you use.
             </div>
 
             <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
@@ -776,7 +776,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
 
               <MetricRow label="Saving Rate" subtitle="(how much of your income you're saving)" value={`${Math.round(savingsRate)}%`} color={savingsColor(savingsRate)} description={savingsDescription(savingsRate)} />
-              <MetricRow label="Recurring Costs" subtitle="(how much of your income is recurring costs)" value={`${Math.round(recurringPct)}%`} color={bandColor(recurringPct, 10, 20)} description={recurringDescription(recurringPct)} />
+              <MetricRow label="Recurring Costs" subtitle="(how much of your income goes on subscriptions)" value={`${Math.round(recurringPct)}%`} color={bandColor(recurringPct, 10, 20)} description={recurringDescription(recurringPct)} />
               <MetricRow label="Costs" subtitle="(how much of your income you're spending)" value={`${Math.round(spendPct)}%`} color={bandColor(spendPct, 60, 80)} description={spendDescription(spendPct)} />
               {discretionaryPct != null && (
                 <MetricRow label="Discretionary Spending" subtitle="(how much you're spending on wants rather than needs)" value={`${Math.round(discretionaryPct)}%`} color={bandColor(discretionaryPct, 15, 30)} description={discretionaryDescription(discretionaryPct)} />
@@ -799,7 +799,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
       {score != null && (
         <div style={{ margin: "0 20px 14px" }}>
-          <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-purple" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
+          <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
             <div className="glass-swirl"></div>
             <div style={{ position: "relative" }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.5, textTransform: "uppercase" }}>Financial Health Score</div>
@@ -823,7 +823,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
       )}
 
       <div style={{ margin: "0 20px 20px" }}>
-        <div onClick={() => !unlocked && scrollToPricing()} className="glass tint-blue" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
+        <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
           <div style={{ position: "relative" }}>
             <div style={{ fontSize: 15, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.5, textTransform: "uppercase" }}>AI Summary</div>
