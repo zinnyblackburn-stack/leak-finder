@@ -93,7 +93,7 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
       "lastAmount": number,
       "frequency": "weekly" | "monthly" | "annual",
       "confidence": "high" | "medium" | "low",
-      "note": string (plain English, under 18 words, no jargon),
+      "note": string (very short, 2-4 words, plain English, no jargon — e.g. "Design software subscription", not "Recurring design software subscription charged monthly"),
       "cancellationScript": string (short polite cancel/negotiate message, under 40 words)
     }
   ],
