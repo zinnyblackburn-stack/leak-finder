@@ -306,21 +306,47 @@ function NavTitle({ children, onBack }) {
 }
 
 function InputScreen({ rawText, setRawText, onAnalyze }) {
+  const heroRef = React.useRef(null);
+  const titleRef = React.useRef(null);
+  const sloganRef = React.useRef(null);
+  const [fitScale, setFitScale] = useState(1);
+
+  React.useLayoutEffect(() => {
+    function measure() {
+      if (!heroRef.current || !titleRef.current || !sloganRef.current) return;
+      const available = heroRef.current.getBoundingClientRect().width;
+      setFitScale(1);
+      requestAnimationFrame(() => {
+        if (!heroRef.current || !titleRef.current || !sloganRef.current) return;
+        const titleW = titleRef.current.getBoundingClientRect().width;
+        const sloganW = sloganRef.current.getBoundingClientRect().width;
+        const widest = Math.max(titleW, sloganW);
+        if (widest > available) {
+          setFitScale(Math.max(0.5, available / widest));
+        }
+      });
+    }
+    measure();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
   return (
     <div>
-      <div style={{ padding: "28px 20px 0", textAlign: "center" }}>
-        <div style={{
+      <div ref={heroRef} style={{ padding: "28px 20px 0", textAlign: "center" }}>
+        <div ref={titleRef} style={{
           fontFamily: "'Avenir Next', " + FONT,
           fontWeight: 400,
           fontSize: 27,
           lineHeight: 1,
           color: "#fff",
           display: "inline-block", whiteSpace: "nowrap",
-          transform: "scaleX(1.3) scaleY(2.1)", transformOrigin: "center",
+          transform: `scaleX(${1.3 * fitScale}) scaleY(${2.1 * fitScale})`, transformOrigin: "center",
         }}>
           MONEY LEAK DETECTOR
         </div>
-        <div style={{
+        <div ref={sloganRef} style={{
           fontFamily: "'DIN Alternate', " + FONT,
           fontWeight: 350,
           fontSize: 22,
@@ -329,6 +355,8 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
           textTransform: "uppercase",
           marginTop: 46,
           whiteSpace: "nowrap",
+          display: "inline-block",
+          transform: `scaleX(${fitScale})`, transformOrigin: "center",
         }}>
           Know Your Money · Grow Your Wealth
         </div>
