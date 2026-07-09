@@ -180,6 +180,19 @@ const C = {
 };
 const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif";
 
+const COMMON_COMPANIES = [
+  "netflix", "spotify", "amazon prime", "amazon", "apple", "icloud", "google one", "google",
+  "gym", "fitness", "planet fitness", "phone bill", "verizon", "at&t", "t-mobile", "vodafone", "o2", "orange",
+  "internet", "broadband", "wifi", "electric", "electricity", "water", "utility", "utilities",
+  "rent", "mortgage", "car insurance", "auto insurance", "health insurance", "insurance",
+  "microsoft", "office 365", "adobe", "chatgpt", "openai", "youtube", "disney", "hulu", "hbo", "max",
+  "dropbox", "facebook", "meta ads", "instagram ads", "linkedin", "zoom", "slack", "canva",
+];
+function isCommonCompany(name) {
+  const n = (name || "").toLowerCase();
+  return COMMON_COMPANIES.some((c) => n.includes(c));
+}
+
 const SAMPLE_DATA = `01/28/2026  ACME CORP PAYROLL         +3200.00
 02/28/2026  ACME CORP PAYROLL         +3200.00
 03/28/2026  ACME CORP PAYROLL         +3200.00
@@ -733,10 +746,17 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 if (!isFree) {
                   const w1 = [64, 82, 52, 96, 70][i % 5];
                   const w2 = [46, 60, 38][i % 3];
+                  const flagged = !isCommonCompany(item.merchant);
                   return (
                     <div key={i} onClick={scrollToPricing}
                       style={{ width: "100%", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: showBorder ? `1px solid ${C.separator}` : "none", cursor: "pointer" }}>
                       <div style={{ height: 13, width: w1, background: "#4A4A52", borderRadius: 4 }} />
+                      {flagged && (
+                        <div className="glass" style={{ display: "flex", alignItems: "center", gap: 4, borderRadius: 8, padding: "4px 8px", flexShrink: 0, position: "relative", overflow: "hidden", border: "1px solid rgba(255,69,58,0.5)" }}>
+                          <Icon.AlertTriangle size={11} color={C.red} style={{ position: "relative" }} />
+                          <span style={{ fontSize: 9, fontWeight: 800, color: C.red, letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unrecognized</span>
+                        </div>
+                      )}
                       <div style={{ height: 13, width: w2, background: "#4A4A52", borderRadius: 4 }} />
                     </div>
                   );
