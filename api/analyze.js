@@ -27,7 +27,7 @@ export default async function handler(req, res) {
 
 STEP 1 — Detect the currency used in the data. Look carefully for currency symbols (€, £, $, ¥, etc.) ANYWHERE in the text, or 3-letter currency codes (EUR, GBP, USD, CHF, etc.), or country-specific formatting hints (comma vs period as decimal separator). Return the correct symbol as "currencySymbol" (e.g. "$", "€", "£"). Only default to "$" if there is truly zero indication of any other currency anywhere in the text — do not default to "$" just because the amounts look like plain numbers.
 
-STEP 2 — Identify INCOME: every incoming (positive-amount / credit / deposit) transaction, UNLESS it is clearly a refund, reversal, or return tied to one of the user's own prior purchases (look for words like "refund", "devolución", "reversal", "chargeback", "reembolso", "devoluciones"). This includes salary/payroll, freelance or client payments, and peer-to-peer transfers (Bizum, Venmo, PayPal, etc.) received from other people — include ALL of these individually in "incomeSources", even if they come from many different people or vary in amount. Do not use subjective judgment about whether a transfer "feels like" real income — the only exclusion is explicit refunds/reversals. Compute "monthlyIncome" as the total of all included income divided by the number of distinct months present in the data.
+STEP 2 — Identify INCOME: every incoming (positive-amount / credit / deposit) transaction, UNLESS it is clearly a refund, reversal, or return tied to one of the user's own prior purchases (look for words like "refund", "devolución", "reversal", "chargeback", "reembolso", "devoluciones"). This includes salary/payroll, freelance or client payments, and peer-to-peer transfers (Bizum, Venmo, PayPal, etc.) received from other people — include ALL of these individually in "incomeSources", even if they come from many different people or vary in amount. Do not use subjective judgment about whether a transfer "feels like" real income — the only exclusion is explicit refunds/reversals. Count the number of distinct calendar months present in the data and report it as "periodMonths" (a whole number, minimum 1) — this is used for every monthly average in this response, so count carefully. Compute "monthlyIncome" as the total of all included income divided by "periodMonths".
 
 Also determine "incomeSteadiness": return "steady" if income comes from one consistent, regularly-repeating source (e.g. a single employer's payroll), or "variable" if it comes from multiple different people/clients, freelance work, or amounts that differ significantly — this matters because variable income makes percentage estimates rougher.
 
@@ -67,13 +67,14 @@ STEP 6 — Separately from the recurring "items" list, identify individual ONE-O
 
 CRITICAL — never include anything that could be a necessity, even if the specific item can't be verified. This means NEVER include: groceries or supermarkets (e.g. Trader Joe's, Whole Foods, Lidl, Tesco), gas/fuel/petrol stations (e.g. Shell, BP, Exxon), utilities, insurance, rent/mortgage, pharmacy/medical, or general transport passes. If a transaction's essential-vs-discretionary status is unclear or ambiguous, LEAVE IT OUT — do not include it just to fill the list. It is far better to return fewer examples than to include something essential.
 
-Never duplicate anything already included in "items". Pick up to 8 of the largest or most representative genuinely-discretionary transactions and return them in "discretionaryExamples": { "description": string (merchant or plain description), "amount": number (positive), "category": string (e.g. "Dining Out", "Coffee", "Shopping") }, sorted by amount descending. If truly none exist, return an empty array — an empty array is a correct and expected result for many statements.
+Never duplicate anything already included in "items". You must be thorough: scan every transaction in the data and include EVERY genuinely discretionary one-off transaction that matches the criteria above — do not artificially limit this to a small highlight reel, and do not stop early. Return them all in "discretionaryExamples": { "description": string (merchant or plain description), "amount": number (positive), "category": string (e.g. "Dining Out", "Coffee", "Shopping") }, sorted by amount descending. If truly none exist, return an empty array — an empty array is a correct and expected result for many statements. This list will be used to calculate a total savings figure shown to the user, so completeness matters far more than brevity — a missed transaction directly understates their result.
 
 Also write "discretionarySummary": a short, warm, plain-English paragraph (3-5 sentences) written directly for the user, tailored specifically to whichever discretionary categories you actually found in STEP 6 (e.g. focus on dining/coffee if that's what dominates, or shopping if that's what dominates instead — never default to a generic "eating out" message if that isn't actually what's present). Include one practical, general tip relevant to what was found. Do NOT mention recurring subscriptions anywhere in this paragraph — those are covered in a separate section. If "discretionaryExamples" is empty, write a short positive note instead (still without mentioning subscriptions).
 
 Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text, matching exactly this schema:
 {
   "currencySymbol": string,
+  "periodMonths": number,
   "monthlyIncome": number,
   "incomeSteadiness": "steady" | "variable",
   "startingBalance": number or null,
@@ -183,6 +184,7 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       suspiciousCharges: Array.isArray(parsed.suspiciousCharges) ? parsed.suspiciousCharges : [],
       discretionaryExamples: Array.isArray(parsed.discretionaryExamples) ? parsed.discretionaryExamples : [],
       discretionarySummary: typeof parsed.discretionarySummary === "string" ? parsed.discretionarySummary : "",
+      periodMonths: Number.isFinite(parsed.periodMonths) && parsed.periodMonths > 0 ? parsed.periodMonths : 1,
     };
 
     return res.status(200).json(result);
