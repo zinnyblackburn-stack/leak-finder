@@ -649,6 +649,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   };
   const monthlyOf = (item) => toMonthlyEquiv(item.avgAmount, item.frequency);
   const sortedItems = [...result.items].sort((a, b) => monthlyOf(b) - monthlyOf(a));
+  const flagCap = sortedItems.length > 11 ? 3 : 2;
+  const flaggedMerchantSet = new Set();
+  sortedItems.forEach((item) => {
+    if (flaggedMerchantSet.size < flagCap && !isCommonCompany(item.merchant)) {
+      flaggedMerchantSet.add(item.merchant);
+    }
+  });
   const lockedCount = Math.max(0, sortedItems.length - 1);
   const hasIncome = result.monthlyIncome > 0;
 
@@ -746,7 +753,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 if (!isFree) {
                   const w1 = [64, 82, 52, 96, 70][i % 5];
                   const w2 = [46, 60, 38][i % 3];
-                  const flagged = !isCommonCompany(item.merchant);
+                  const flagged = flaggedMerchantSet.has(item.merchant);
                   return (
                     <div key={i} onClick={scrollToPricing}
                       style={{ width: "100%", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: showBorder ? `1px solid ${C.separator}` : "none", cursor: "pointer" }}>
