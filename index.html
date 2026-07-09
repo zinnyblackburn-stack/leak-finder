@@ -314,7 +314,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
   React.useLayoutEffect(() => {
     function measure() {
       if (!heroRef.current || !titleRef.current || !sloganRef.current) return;
-      titleRef.current.style.transform = "scaleX(1.3) scaleY(1.6)";
+      titleRef.current.style.transform = "scaleX(1.15) scaleY(1.35)";
       sloganRef.current.style.transform = "scaleX(1)";
       const available = heroRef.current.getBoundingClientRect().width;
       const titleW = titleRef.current.getBoundingClientRect().width;
@@ -335,22 +335,22 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         <div ref={titleRef} style={{
           fontFamily: "'Avenir Next', " + FONT,
           fontWeight: 400,
-          fontSize: 27,
+          fontSize: 22,
           lineHeight: 1,
           color: "#fff",
           whiteSpace: "nowrap",
-          transform: `scaleX(${1.3 * fitScale}) scaleY(${1.6 * fitScale})`, transformOrigin: "center",
+          transform: `scaleX(${1.15 * fitScale}) scaleY(${1.35 * fitScale})`, transformOrigin: "center",
         }}>
           MONEY LEAK DETECTOR
         </div>
         <div ref={sloganRef} style={{
           fontFamily: "'DIN Alternate', " + FONT,
           fontWeight: 350,
-          fontSize: 22,
+          fontSize: 17,
           letterSpacing: 0.6,
           color: "#fff",
           textTransform: "uppercase",
-          marginTop: 46,
+          marginTop: 32,
           whiteSpace: "nowrap",
           transform: `scaleX(${fitScale})`, transformOrigin: "center",
         }}>
@@ -365,7 +365,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         fontSize: 13,
         letterSpacing: -0.7,
         lineHeight: 1.4,
-        marginTop: 46,
+        marginTop: 32,
         textAlign: "left",
       }}>
         Paste 3–6 months of your transaction history. Our AI uncovers hidden money leaks, suspicious payments, reveals where your money goes, and delivers personalised insights to help you save more money.
@@ -973,4 +973,3 @@ ReactDOM.createRoot(document.getElementById("root")).render(<LeakFinder />);
 </script>
 </body>
 </html>
-
