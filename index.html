@@ -36,7 +36,6 @@
   }
   .app-shell {
     width: 100%; max-width: 480px; min-height: 100vh;
-    container-type: inline-size;
   }
   .glass {
     -webkit-mask-image: -webkit-radial-gradient(white, black);
@@ -606,7 +605,7 @@ function TechCornerHex({ color }) {
   );
 }
 
-function MetricRow({ label, subtitle, value, color, description, last }) {
+function MetricRow({ label, subtitle, value, color, description, last, onUnlock }) {
   return (
     <div style={{ paddingBottom: 14, marginBottom: last ? 0 : 14, borderBottom: last ? "none" : `1px solid ${C.separator}` }}>
       <div style={{ fontSize: 10.5, color: C.textSecondary, fontWeight: 700, letterSpacing: 0.4, textTransform: "uppercase" }}>{label}</div>
@@ -615,8 +614,9 @@ function MetricRow({ label, subtitle, value, color, description, last }) {
         {value}
       </div>
       {description && (
-        <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 6, lineHeight: 1.5 }}>
-          {description}
+        <div onClick={onUnlock} style={{ marginTop: 8, cursor: "pointer" }}>
+          <div style={{ height: 11, width: "90%", background: "#4A4A52", borderRadius: 4, marginBottom: 5 }} />
+          <div style={{ height: 11, width: "64%", background: "#4A4A52", borderRadius: 4 }} />
         </div>
       )}
     </div>
@@ -646,8 +646,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const essentialPct = hasIncome && result.monthlyEssential != null ? (result.monthlyEssential / result.monthlyIncome) * 100 : null;
   const score = hasIncome ? computeScore({ savingsRate, recurringPct, spendPct }) : null;
   const scoreColor = score == null ? C.blue : score >= 70 ? C.green : score >= 40 ? C.orange : C.red;
-  const discretionaryMonthly = result.monthlyDiscretionary != null ? result.monthlyDiscretionary : result.totalMonthly;
-  const savingOpportunityAnnual = Math.round((discretionaryMonthly || 0) * 12);
+  const discretionaryExamplesTotal = (result.discretionaryExamples || []).reduce((sum, ex) => sum + (ex.amount || 0), 0);
+  const periodMonths = result.periodMonths && result.periodMonths > 0 ? result.periodMonths : 1;
+  const savingOpportunityAnnual = Math.round((discretionaryExamplesTotal / periodMonths) * 12);
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
   const hasSuspicious = Array.isArray(result.suspiciousCharges) && result.suspiciousCharges.length > 0;
@@ -675,7 +676,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
 
           {unlocked ? (
             <React.Fragment>
-              <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 8, lineHeight: 1.4 }}>
                 Our AI found you could save up to {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by cutting down on the following costs:
               </div>
               <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
@@ -689,7 +690,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             </React.Fragment>
           ) : (
             <React.Fragment>
-              <div style={{ fontSize: 11, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 8, lineHeight: 1.4 }}>
                 Our AI found you could save {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by...
               </div>
               <button onClick={scrollToPricing} className="glass" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
@@ -707,19 +708,19 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div className="glass-swirl"></div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
             <Icon.TrendingDown size={16} color="#FF8A80" />
-            <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>Your Current Subscription Costs</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>Your Current Recurring Costs</span>
           </div>
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
             {cur}{result.totalAnnual?.toLocaleString(undefined, { maximumFractionDigits: 0 })}<span style={{ fontSize: 14, marginLeft: 4, fontWeight: 600 }}>/year</span>
           </div>
-          <div style={{ color: "#FFD9D6", fontSize: 11.5, marginTop: 6 }}>{result.itemCount} recurring payments · {cur}{result.totalMonthly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</div>
+          <div style={{ color: C.textSecondary, fontSize: 11.5, marginTop: 6 }}>{result.itemCount} recurring payments · {cur}{result.totalMonthly?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</div>
 
           <div style={{ marginTop: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <Icon.AlertTriangle size={20} color={C.red} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 15.5, fontWeight: 800, color: "#FFEDEC" }}>Some payments have been flagged for review</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+              <Icon.AlertTriangle size={18} color={C.red} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 800, color: "#FFFFFF", whiteSpace: "nowrap", display: "inline-block", transform: "scaleX(0.88)", transformOrigin: "left" }}>Some payments have been flagged for review</span>
             </div>
-            <div style={{ fontSize: 12.5, color: "#F0C9C5", lineHeight: 1.45, marginBottom: 12 }}>
+            <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.45, marginBottom: 12 }}>
               Not every subscription is a leak. Review and only keep what you use.
             </div>
 
@@ -775,7 +776,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             {!unlocked && lockedCount > 0 && (
               <button onClick={scrollToPricing} className="glass" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                 <Icon.Lock size={12} color="#FF8A80" style={{ position: "relative" }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#FF8A80", letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock {lockedCount} Recurring {lockedCount === 1 ? "Cost" : "Costs"} (Potential Money Leaks)</span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#FF8A80", letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock {lockedCount} Recurring Costs</span>
               </button>
             )}
           </div>
@@ -821,18 +822,18 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 </div>
               )}
 
-              <MetricRow label="Saving Rate" subtitle="(how much of your income you're saving)" value={`${Math.round(savingsRate)}%`} color={savingsColor(savingsRate)} description={savingsDescription(savingsRate)} />
-              <MetricRow label="Recurring Costs" subtitle="(how much of your income goes on subscriptions)" value={`${Math.round(recurringPct)}%`} color={bandColor(recurringPct, 10, 20)} description={recurringDescription(recurringPct)} />
-              <MetricRow label="Costs" subtitle="(how much of your income you're spending)" value={`${Math.round(spendPct)}%`} color={bandColor(spendPct, 60, 80)} description={spendDescription(spendPct)} />
+              <MetricRow label="Saving Rate" subtitle="(how much of your income you're saving)" value={`${Math.round(savingsRate)}%`} color={savingsColor(savingsRate)} description={savingsDescription(savingsRate)} onUnlock={scrollToPricing} />
+              <MetricRow label="Recurring Costs" subtitle="(how much of your income goes on subscriptions)" value={`${Math.round(recurringPct)}%`} color={bandColor(recurringPct, 10, 20)} description={recurringDescription(recurringPct)} onUnlock={scrollToPricing} />
+              <MetricRow label="Costs" subtitle="(how much of your income you're spending)" value={`${Math.round(spendPct)}%`} color={bandColor(spendPct, 60, 80)} description={spendDescription(spendPct)} onUnlock={scrollToPricing} />
               {discretionaryPct != null && (
-                <MetricRow label="Discretionary Spending" subtitle="(how much you're spending on wants rather than needs)" value={`${Math.round(discretionaryPct)}%`} color={bandColor(discretionaryPct, 15, 30)} description={discretionaryDescription(discretionaryPct)} />
+                <MetricRow label="Discretionary Spending" subtitle="(how much you're spending on wants rather than needs)" value={`${Math.round(discretionaryPct)}%`} color={bandColor(discretionaryPct, 15, 30)} description={discretionaryDescription(discretionaryPct)} onUnlock={scrollToPricing} />
               )}
               {essentialPct != null && (
-                <MetricRow label="Essential Spending" subtitle="(how much of your income goes on essentials)" value={`${Math.round(essentialPct)}%`} color={bandColor(essentialPct, 50, 65)} description={essentialDescription(essentialPct)} />
+                <MetricRow label="Essential Spending" subtitle="(how much of your income goes on essentials)" value={`${Math.round(essentialPct)}%`} color={bandColor(essentialPct, 50, 65)} description={essentialDescription(essentialPct)} onUnlock={scrollToPricing} />
               )}
               {result.largestCategoryName && (
                 <MetricRow label="Largest Spending Category" value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`} color={C.textPrimary}
-                  description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry — it's simply something to be aware of, not something to stress over." last />
+                  description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry — it's simply something to be aware of, not something to stress over." onUnlock={scrollToPricing} last />
               )}
 
               <div style={{ marginTop: 4, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
