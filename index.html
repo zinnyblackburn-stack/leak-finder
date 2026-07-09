@@ -314,17 +314,14 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
   React.useLayoutEffect(() => {
     function measure() {
       if (!heroRef.current || !titleRef.current || !sloganRef.current) return;
+      titleRef.current.style.transform = "scaleX(1.3) scaleY(2.1)";
+      sloganRef.current.style.transform = "scaleX(1)";
       const available = heroRef.current.getBoundingClientRect().width;
-      setFitScale(1);
-      requestAnimationFrame(() => {
-        if (!heroRef.current || !titleRef.current || !sloganRef.current) return;
-        const titleW = titleRef.current.getBoundingClientRect().width;
-        const sloganW = sloganRef.current.getBoundingClientRect().width;
-        const widest = Math.max(titleW, sloganW);
-        if (widest > available) {
-          setFitScale(Math.max(0.5, available / widest));
-        }
-      });
+      const titleW = titleRef.current.getBoundingClientRect().width;
+      const sloganW = sloganRef.current.getBoundingClientRect().width;
+      const widest = Math.max(titleW, sloganW);
+      const newScale = widest > available ? Math.max(0.5, (available * 0.96) / widest) : 1;
+      setFitScale(newScale);
     }
     measure();
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
