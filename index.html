@@ -207,48 +207,76 @@ function isCommonCompany(name) {
   return COMMON_COMPANIES.some((c) => n.includes(c));
 }
 
-const SAMPLE_DATA = `01/28/2026  ACME CORP PAYROLL         +3200.00
-02/28/2026  ACME CORP PAYROLL         +3200.00
-03/28/2026  ACME CORP PAYROLL         +3200.00
-04/28/2026  ACME CORP PAYROLL         +3200.00
-01/15/2026  NETFLIX.COM               -15.99
-02/15/2026  NETFLIX.COM               -15.99
-03/15/2026  NETFLIX.COM               -17.99
-04/15/2026  NETFLIX.COM               -17.99
-01/03/2026  SPOTIFY USA               -10.99
-02/03/2026  SPOTIFY USA               -10.99
-03/03/2026  SPOTIFY USA               -10.99
-04/03/2026  SPOTIFY USA               -10.99
-01/07/2026  ADOBE CREATIVE CLOUD      -54.99
-02/07/2026  ADOBE CREATIVE CLOUD      -54.99
-03/07/2026  ADOBE CREATIVE CLOUD      -54.99
-04/07/2026  ADOBE CREATIVE CLOUD      -54.99
-01/11/2026  PLANET FITNESS #4021      -24.99
-02/11/2026  PLANET FITNESS #4021      -24.99
-03/11/2026  PLANET FITNESS #4021      -24.99
-04/11/2026  PLANET FITNESS #4021      -24.99
-01/20/2026  HULU                       -7.99
-02/20/2026  HULU                       -7.99
-03/20/2026  HULU                       -12.99
-04/20/2026  HULU                       -12.99
-01/02/2026  CALM.COM SUBSCRIPTION     -14.99
-02/02/2026  CALM.COM SUBSCRIPTION     -14.99
-03/02/2026  CALM.COM SUBSCRIPTION     -14.99
-04/02/2026  CALM.COM SUBSCRIPTION     -14.99
-01/05/2026  FACEBK ADS                -42.10
-02/05/2026  FACEBK ADS                -67.85
-03/05/2026  FACEBK ADS                -31.40
-04/05/2026  FACEBK ADS                -89.20
-01/09/2026  TRADER JOES #442          -63.10
-01/18/2026  SHELL OIL 3921            -41.02
-02/05/2026  AMAZON MKTPLACE           -22.40
-02/14/2026  UBER TRIP                 -18.75
-03/09/2026  TRADER JOES #442          -58.30
-03/22/2026  CHIPOTLE ONLINE           -14.20
-04/01/2026  RENT PAYMENT           -1850.00
-02/01/2026  RENT PAYMENT           -1850.00
-03/01/2026  RENT PAYMENT           -1850.00
-01/01/2026  RENT PAYMENT           -1850.00`;
+const SAMPLE_DATA = `03 Apr  PAYROLL - ACME SOLUTIONS LTD                   +2,845.00
+03 Apr  RENT - OAKWOOD APARTMENTS                      -1,150.00
+04 Apr  TESCO                                          -68.42
+04 Apr  SHELL FUEL                                     -52.31
+05 Apr  SPOTIFY PREMIUM                                -10.99
+06 Apr  AMAZON MARKETPLACE                             -18.99
+07 Apr  COSTA COFFEE                                    -4.70
+08 Apr  UBER                                           -13.82
+09 Apr  NETFLIX                                        -17.99
+10 Apr  LIDL                                           -42.15
+12 Apr  JD SPORTS                                      -79.99
+14 Apr  DIRECT DEBIT - EE MOBILE                       -36.00
+15 Apr  TRANSFER TO SAVINGS                           -300.00
+16 Apr  PAYPAL *DIGITALSERV                            -39.95
+18 Apr  MCDONALD'S                                     -11.28
+20 Apr  CASH WITHDRAWAL                                -80.00
+22 Apr  APPLE.COM/BILL                                  -4.99
+24 Apr  ELECTRICITY BILL                               -84.23
+26 Apr  JUST EAT                                       -27.60
+28 Apr  PRIME VIDEO                                     -8.99
+30 Apr  INTEREST CREDIT                                 +1.82
+
+01 May  PAYROLL - ACME SOLUTIONS LTD                  +2,845.00
+02 May  RENT - OAKWOOD APARTMENTS                     -1,150.00
+03 May  ALDI                                           -54.83
+04 May  STARBUCKS                                       -6.15
+05 May  GYM MEMBERSHIP                                 -34.99
+06 May  AMAZON MARKETPLACE                             -92.40
+07 May  PAYPAL *STREAMLABS                              -5.99
+08 May  SHELL                                          -49.12
+09 May  UBER                                           -14.45
+10 May  TESCO                                          -63.74
+11 May  APPLE.COM/BILL                                  -0.99
+13 May  TRANSFER TO SAVINGS                           -300.00
+14 May  SPOTIFY PREMIUM                                -10.99
+16 May  ZARA                                           -64.99
+18 May  PAYPAL *LUMIXSOFT                             -147.50
+20 May  COSTA COFFEE                                    -5.10
+21 May  CASH WITHDRAWAL                               -120.00
+22 May  NETFLIX                                        -17.99
+24 May  DELIVEROO                                      -33.80
+25 May  DIRECT DEBIT - WATER                           -31.48
+27 May  ELECTRICITY BILL                               -79.66
+29 May  CARD PAYMENT - QUICKTECH HK                    -89.99
+31 May  REFUND AMAZON                                  +18.99
+
+02 Jun  PAYROLL - ACME SOLUTIONS LTD                  +2,845.00
+02 Jun  RENT - OAKWOOD APARTMENTS                     -1,150.00
+03 Jun  LIDL                                           -48.21
+04 Jun  SPOTIFY PREMIUM                                -10.99
+05 Jun  SHELL                                          -57.84
+06 Jun  UBER                                           -12.36
+07 Jun  AMAZON MARKETPLACE                             -24.90
+08 Jun  GREGGS                                          -6.40
+09 Jun  APPLE.COM/BILL                                  -4.99
+10 Jun  GYM MEMBERSHIP                                 -34.99
+12 Jun  TESCO                                          -71.08
+13 Jun  PAYPAL *DIGITALSERV                            -39.95
+15 Jun  TRANSFER TO SAVINGS                             -300.00
+16 Jun  UNKNOWN CARD VERIFY                             -1.00
+16 Jun  REVERSAL UNKNOWN CARD VERIFY                    +1.00
+17 Jun  CASH WITHDRAWAL                               -200.00
+18 Jun  PAYPAL *FASTGAMES                              -79.99
+20 Jun  NETFLIX                                        -17.99
+22 Jun  JUST EAT                                       -29.10
+24 Jun  ELECTRICITY BILL                               -88.51
+26 Jun  AMAZON MARKETPLACE                              -8.49
+27 Jun  DIRECT DEBIT - HOME INSURANCE                  -18.75
+29 Jun  CARD PAYMENT - NOVA MEDIA SOLUTIONS           -249.00
+30 Jun  INTEREST CREDIT                                 +2.04`;
 
 function LeakFinder() {
   const [screen, setScreen] = useState("input");
@@ -368,7 +396,7 @@ function InputScreen({ rawText, setRawText, onAnalyze }) {
         <button onClick={() => setRawText(SAMPLE_DATA)} className="glass"
           style={{ width: "100%", borderRadius: 16, padding: "11px 0", fontSize: 15, fontWeight: 600, color: C.textPrimary, marginBottom: 8, position: "relative", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
-                    Try sample data
+                    View Sample Report
         </button>
         <button onClick={onAnalyze} disabled={!rawText.trim()}
           style={{
@@ -658,7 +686,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
   const scoreColor = score == null ? C.blue : score >= 70 ? C.green : score >= 40 ? C.orange : C.red;
   const discretionaryExamplesTotal = (result.discretionaryExamples || []).reduce((sum, ex) => sum + (ex.amount || 0), 0);
   const periodMonths = result.periodMonths && result.periodMonths > 0 ? result.periodMonths : 1;
-  const savingOpportunityAnnual = Math.round((discretionaryExamplesTotal / periodMonths) * 12);
+  const savingOpportunityAnnual = Math.round((discretionaryExamplesTotal * 0.5 / periodMonths) * 12);
   const hasBalanceCheck = result.startingBalance != null && result.endingBalance != null;
   const balanceChange = hasBalanceCheck ? result.endingBalance - result.startingBalance : null;
   const hasSuspicious = Array.isArray(result.suspiciousCharges) && result.suspiciousCharges.length > 0;
@@ -687,13 +715,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           {unlocked ? (
             <React.Fragment>
               <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 8, lineHeight: 1.4 }}>
-                Our AI found you could save up to {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by cutting down on the following costs:
+                Based on cutting the following discretionary costs by half — a realistic target, not zeroing them out entirely:
               </div>
               <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
                 {(result.discretionaryExamples || []).map((ex, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < result.discretionaryExamples.length - 1 ? `1px solid ${C.separator}` : "none" }}>
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>{ex.description}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{cur}{ex.amount}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{cur}{(ex.amount * 0.5).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -849,6 +877,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               )}
               {essentialPct != null && (
                 <MetricRow label="Essential Spending" subtitle="(how much of your income goes on essentials)" value={`${Math.round(essentialPct)}%`} color={bandColor(essentialPct, 50, 65)} description={essentialDescription(essentialPct)} onUnlock={scrollToPricing} />
+              )}
+              {result.monthlyCashWithdrawn > 0 && (
+                <MetricRow label="Cash Withdrawn" subtitle="(how much cash you've withdrawn this month)" value={`${cur}${result.monthlyCashWithdrawn.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} color={C.textPrimary} description="Cash is hard to trace once it's out of your account — if you're not sure where it all goes, keeping a rough note for a few weeks can be revealing." onUnlock={scrollToPricing} />
               )}
               {result.largestCategoryName && (
                 <MetricRow label="Largest Spending Category" value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`} color={C.textPrimary}
