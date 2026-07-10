@@ -65,11 +65,17 @@ STEP 5 — Scan EVERY transaction (not just recurring ones) for signs of a suspi
 
 STEP 6 — Separately from the recurring "items" list, identify individual ONE-OFF DISCRETIONARY (want, not need) transactions. This is strictly limited to genuine "wants" — things like: clothing/shopping, rideshare (Uber/Lyft), Amazon purchases that aren't household essentials, dining out, coffee shops, takeaway/food delivery, cinema/entertainment, activity venues (e.g. go-karts, bowling), hotels/travel, alcohol, tobacco/cigarettes, and similar non-essential lifestyle spending.
 
-CRITICAL — never include anything that could be a necessity, even if the specific item can't be verified. This means NEVER include: groceries or supermarkets (e.g. Trader Joe's, Whole Foods, Lidl, Tesco), gas/fuel/petrol stations (e.g. Shell, BP, Exxon), utilities, insurance, rent/mortgage, pharmacy/medical, or general transport passes. If a transaction's essential-vs-discretionary status is unclear or ambiguous, LEAVE IT OUT — do not include it just to fill the list. It is far better to return fewer examples than to include something essential.
+CRITICAL — never include anything that could be a necessity, even if the specific item can't be verified. This means NEVER include: groceries or supermarkets (e.g. Trader Joe's, Whole Foods, Lidl, Tesco), gas/fuel/petrol stations (e.g. Shell, BP, Exxon), utilities, insurance, rent/mortgage, pharmacy/medical, general transport passes, or cash/ATM withdrawals (these are tracked separately — see STEP 6b). If a transaction's essential-vs-discretionary status is unclear or ambiguous, LEAVE IT OUT — do not include it just to fill the list. It is far better to return fewer examples than to include something essential.
+
+Merchant name normalization: always use the clean, plain brand name a person would recognize — strip store numbers, location codes, and redundant suffixes (e.g. "AMAZON MARKETPLACE" or "AMAZON MKTPLACE" → "Amazon", not "Amazon Marketplace Marketplace" or any duplicated/garbled variant; "TRADER JOES #442" → "Trader Joe's"; "UBER TRIP" → "Uber"). Never repeat a word twice in the same name.
 
 Never duplicate anything already included in "items". You must be thorough: scan every transaction in the data and include EVERY genuinely discretionary one-off transaction that matches the criteria above — do not artificially limit this to a small highlight reel, and do not stop early. Return them all in "discretionaryExamples": { "description": string (merchant or plain description), "amount": number (positive), "category": string (e.g. "Dining Out", "Coffee", "Shopping") }, sorted by amount descending. If truly none exist, return an empty array — an empty array is a correct and expected result for many statements. This list will be used to calculate a total savings figure shown to the user, so completeness matters far more than brevity — a missed transaction directly understates their result.
 
-Also write "discretionarySummary": a short, warm, plain-English paragraph (3-5 sentences) written directly for the user, tailored specifically to whichever discretionary categories you actually found in STEP 6 (e.g. focus on dining/coffee if that's what dominates, or shopping if that's what dominates instead — never default to a generic "eating out" message if that isn't actually what's present). Include one practical, general tip relevant to what was found. Do NOT mention recurring subscriptions anywhere in this paragraph — those are covered in a separate section. If "discretionaryExamples" is empty, write a short positive note instead (still without mentioning subscriptions).
+STEP 6b — Add up every cash/ATM withdrawal transaction in the data (look for "cash withdrawal", "ATM", "cash advance", or similar) and compute "monthlyCashWithdrawn": the average monthly total, using the same "periodMonths" divisor as everything else. If none exist, return 0.
+
+STEP 6c — Scan for recurring transfers the user makes to their OWN savings or investment accounts (look for labels like "Transfer to Savings", "Savings Transfer", "Investment Transfer", "Brokerage", "ISA", "401k", "Round-up Savings", or similar — these are not expenses, they're the user paying their future self). If you find a CONSISTENT recurring savings transfer (same or similar amount, roughly every month), and/or a consistent recurring investment transfer, note the amount and frequency — this will be woven into "discretionarySummary" as positive reinforcement (see below).
+
+Also write "discretionarySummary": a short, warm, plain-English paragraph (3-5 sentences) written directly for the user, tailored specifically to whichever discretionary categories you actually found in STEP 6 (e.g. focus on dining/coffee if that's what dominates, or shopping if that's what dominates instead — never default to a generic "eating out" message if that isn't actually what's present). Include one practical, general tip relevant to what was found. Do NOT mention recurring subscriptions anywhere in this paragraph — those are covered in a separate section. If you found a consistent recurring savings and/or investment transfer in STEP 6c, explicitly acknowledge it as a positive habit within this paragraph — for example, in the style of "You consistently transfer £300/month into savings, which is a strong financial habit helping offset discretionary spending" — using the real amount and frequency you found, and do the same for investment transfers if present. The AI should recognize and encourage good financial behavior, not just flag spending. If "discretionaryExamples" is empty, write a short positive note instead (still without mentioning subscriptions), and still mention any savings/investment habit found.
 
 Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text, matching exactly this schema:
 {
@@ -82,6 +88,7 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, no trailing text,
   "monthlySpending": number,
   "monthlyEssential": number,
   "monthlyDiscretionary": number,
+  "monthlyCashWithdrawn": number,
   "largestCategoryName": string,
   "largestCategoryTotal": number,
   "incomeSources": [
@@ -185,6 +192,7 @@ Do NOT include totals, sums, or item counts in your response — only the raw it
       discretionaryExamples: Array.isArray(parsed.discretionaryExamples) ? parsed.discretionaryExamples : [],
       discretionarySummary: typeof parsed.discretionarySummary === "string" ? parsed.discretionarySummary : "",
       periodMonths: Number.isFinite(parsed.periodMonths) && parsed.periodMonths > 0 ? parsed.periodMonths : 1,
+      monthlyCashWithdrawn: Number.isFinite(parsed.monthlyCashWithdrawn) ? parsed.monthlyCashWithdrawn : 0,
     };
 
     return res.status(200).json(result);
