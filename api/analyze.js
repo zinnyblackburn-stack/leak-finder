@@ -35,12 +35,16 @@ STEP 2b — If the data includes a running account balance after each transactio
 
 CRITICAL RULE: incoming money must NEVER appear in the "items" (leaks) array under any circumstances, even if it superficially looks recurring. Leaks are only outgoing charges.
 
-STEP 3 — Compute "monthlySpending": the average total of ALL outgoing transactions per month across the whole period (everything that isn't income) — this gives an overall spending picture, independent of the leaks list. Compute this carefully by actually dividing total outgoing spend by the number of distinct months present in the data.
+STEP 3 — Compute "monthlySpending" using this EXACT procedure, in order:
+  (a) List every outgoing (negative-amount / debit) transaction in the ENTIRE period, EXCLUDING transfers to the user's own savings or investment accounts (e.g. "Transfer to Savings", "Investment Transfer", "ISA", "401k") — those are not spending, they're money the user is keeping, and including them will make spending look artificially inflated.
+  (b) Add up all of those amounts into one single total for the whole period.
+  (c) Divide that single total by "periodMonths" to get "monthlySpending". Do not skip this division. Do not use only one month's transactions — use the sum across the ENTIRE period, then divide once by the number of months.
+  (d) Sanity check: "monthlySpending" divided by "monthlyIncome" should almost always be somewhere between 0.3 and 1.3 for a normal statement. If your result implies the person is spending more than 150% of their income, you have very likely made an arithmetic or division error (most commonly: forgetting to divide by periodMonths, or dividing by 1 instead of periodMonths) — redo the calculation from step (a) before finalizing.
 
-STEP 3b — Split that same spending into two categories and report their average monthly totals:
+STEP 3b — Split that same spending (the same total from STEP 3, excluding self-transfers) into two categories and report their average monthly totals:
 - "monthlyEssential": necessities — groceries, utilities, transport/fuel, insurance, rent/mortgage, essential bills
 - "monthlyDiscretionary": everything else optional — dining out, entertainment, shopping, subscriptions, hobbies
-These two numbers should roughly add up to "monthlySpending".
+These two numbers must add up to approximately "monthlySpending" (within a few percent) — if they don't, you've made an error in one of the three figures; recheck before finalizing.
 
 STEP 3c — Identify the single spending category with the highest total spend across the whole period. Do NOT infer or guess a category label (e.g. do not label a payment "Rent" or "Business Advertising" just because it looks like it). If the data itself explicitly labels the category (e.g. a column says "Rent" or "Groceries"), use that exact label. Otherwise, use the literal merchant/business name as it appears in the data (e.g. "Facebk Ads", "Trader Joe's") rather than a guessed category. Report "largestCategoryName" and "largestCategoryTotal" (the total amount spent in that category across the entire period provided, not monthly average).
 
