@@ -715,13 +715,13 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           {unlocked ? (
             <React.Fragment>
               <div style={{ fontSize: 11, color: C.textSecondary, marginTop: 8, lineHeight: 1.4 }}>
-                Based on cutting the following discretionary costs by half — a realistic target, not zeroing them out entirely:
+                Our AI found you could save {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by cutting these discretionary costs by half:
               </div>
               <div style={{ marginTop: 8, borderRadius: 12, overflow: "hidden", background: "rgba(0,0,0,0.22)" }}>
                 {(result.discretionaryExamples || []).map((ex, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < result.discretionaryExamples.length - 1 ? `1px solid ${C.separator}` : "none" }}>
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>{ex.description}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{cur}{(ex.amount * 0.5).toFixed(2)}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{cur}{ex.amount}</span>
                   </div>
                 ))}
               </div>
@@ -879,7 +879,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 <MetricRow label="Essential Spending" subtitle="(how much of your income goes on essentials)" value={`${Math.round(essentialPct)}%`} color={bandColor(essentialPct, 50, 65)} description={essentialDescription(essentialPct)} onUnlock={scrollToPricing} />
               )}
               {result.monthlyCashWithdrawn > 0 && (
-                <MetricRow label="Cash Withdrawn" subtitle="(how much cash you've withdrawn this month)" value={`${cur}${result.monthlyCashWithdrawn.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} color={C.textPrimary} description="Cash is hard to trace once it's out of your account — if you're not sure where it all goes, keeping a rough note for a few weeks can be revealing." onUnlock={scrollToPricing} />
+                <MetricRow label="Cash Withdrawn" subtitle="(your average monthly cash withdrawal)" value={`${cur}${result.monthlyCashWithdrawn.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} color={C.textPrimary} description="Cash is hard to trace once it's out of your account — if you're not sure where it all goes, keeping a rough note for a few weeks can be revealing." onUnlock={scrollToPricing} />
               )}
               {result.largestCategoryName && (
                 <MetricRow label="Largest Spending Category" value={`${result.largestCategoryName} · ${cur}${fmt(result.largestCategoryTotal)}`} color={C.textPrimary}
