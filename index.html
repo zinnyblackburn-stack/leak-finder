@@ -18,11 +18,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Azeret+Mono:wght@100;400&display=swap" rel="stylesheet" />
 
 <style>
-  html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; }
+  html, body { margin: 0; padding: 0; background: #000; overscroll-behavior: none; height: 100%; overflow: hidden; }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   button { cursor: pointer; font-family: inherit; }
   textarea { font-family: inherit; }
-  #root { min-height: 100vh; display: flex; justify-content: center; position: relative; z-index: 1; }
+  #root {
+    height: 100vh; height: 100dvh;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; justify-content: center; position: relative; z-index: 1;
+  }
   .bg-fixed {
     position: fixed; top: 0; left: 50%; width: 100%; max-width: 480px; height: 100vh; height: 100lvh; z-index: 0;
     background-color: #030305;
@@ -673,7 +677,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div className="glass-swirl"></div>
           <div style={{ position: "relative" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-            <Icon.TrendingUp size={16} color="#6FFFA0" />
+            <Icon.TrendingUp size={16} color={C.green} />
             <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>You Could Save</span>
           </div>
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
@@ -689,7 +693,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 {(result.discretionaryExamples || []).map((ex, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderBottom: i < result.discretionaryExamples.length - 1 ? `1px solid ${C.separator}` : "none" }}>
                     <span style={{ fontSize: 12.5, fontWeight: 600, color: "#fff" }}>{ex.description}</span>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#DFFFEA" }}>{cur}{ex.amount}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: C.green }}>{cur}{ex.amount}</span>
                   </div>
                 ))}
               </div>
@@ -700,8 +704,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                 Our AI found you could save {cur}{savingOpportunityAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}/year by...
               </div>
               <button onClick={scrollToPricing} className="glass" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
-                <Icon.Lock size={12} color="#6FFFA0" style={{ position: "relative" }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#6FFFA0", letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock the Blueprint</span>
+                <Icon.Lock size={12} color={C.green} style={{ position: "relative" }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.green, letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock the Blueprint</span>
               </button>
             </React.Fragment>
           )}
@@ -713,7 +717,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         <div className="glass" style={{ borderRadius: 26, padding: "18px 18px", position: "relative", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
           <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-            <Icon.TrendingDown size={16} color="#FF8A80" />
+            <Icon.TrendingDown size={16} color={C.red} />
             <span style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>Your Current Recurring Costs</span>
           </div>
           <div style={{ color: "#fff", fontSize: 32, fontWeight: 800, letterSpacing: -0.5 }}>
@@ -724,7 +728,9 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div style={{ marginTop: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
               <Icon.AlertTriangle size={18} color={C.red} style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 14, fontWeight: 800, color: "#FFFFFF", whiteSpace: "nowrap", display: "inline-block", transform: "scaleX(0.88)", transformOrigin: "left" }}>Some payments have been flagged for review</span>
+              <div style={{ overflow: "hidden" }}>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#FFFFFF", whiteSpace: "nowrap", display: "inline-block", transform: "scaleX(0.88)", transformOrigin: "left" }}>Some payments have been flagged for review</span>
+              </div>
             </div>
             <div style={{ fontSize: 12.5, color: C.textSecondary, lineHeight: 1.45, marginBottom: 12 }}>
               Not every subscription is a leak. Review and only keep what you use.
@@ -788,8 +794,8 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
             </div>
             {!unlocked && lockedCount > 0 && (
               <button onClick={scrollToPricing} className="glass" style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10, borderRadius: 14, padding: "9px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
-                <Icon.Lock size={12} color="#FF8A80" style={{ position: "relative" }} />
-                <span style={{ fontSize: 11, fontWeight: 800, color: "#FF8A80", letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock {lockedCount} Recurring Costs</span>
+                <Icon.Lock size={12} color={C.red} style={{ position: "relative" }} />
+                <span style={{ fontSize: 11, fontWeight: 800, color: C.red, letterSpacing: 0.3, textTransform: "uppercase", position: "relative" }}>Unlock {lockedCount} Recurring Costs</span>
               </button>
             )}
           </div>
@@ -849,7 +855,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
                   description="This is where your money goes most. Focusing on your largest expense is often the fastest way to unlock bigger savings and reach your financial goals sooner. However, if it's an essential expense, don't worry — it's simply something to be aware of, not something to stress over." onUnlock={scrollToPricing} last />
               )}
 
-              <div style={{ marginTop: 4, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
+              <div style={{ marginTop: 4, paddingTop: 14, borderTop: `1px solid ${C.separator}`, fontSize: 12.5, color: C.textPrimary, lineHeight: 1.5 }}>
                 Small, consistent choices compound over time — the fact that you're looking closely at this already puts you ahead. Pick one thing from this report to change this month, and let it become a habit before adding the next.
               </div>
             </div>
@@ -862,7 +868,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
           <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
             <div className="glass-swirl"></div>
             <div style={{ position: "relative" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#E5E4FF", letterSpacing: 0.5, textTransform: "uppercase" }}>Financial Health Score</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>Financial Health Score</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: 14 }}>
                 <ScoreGauge score={score} color={scoreColor} locked={!unlocked} showLockedLabel size={130} thickness={13} />
               </div>
@@ -885,7 +891,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
         <div onClick={() => !unlocked && scrollToPricing()} className="glass" style={{ textAlign: "left", borderRadius: 26, padding: "18px 18px", position: "relative", cursor: unlocked ? "default" : "pointer", overflow: "hidden" }}>
           <div className="glass-swirl"></div>
           <div style={{ position: "relative" }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#D6ECFF", letterSpacing: 0.5, textTransform: "uppercase" }}>AI Summary</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#FFFFFF", letterSpacing: 0.5, textTransform: "uppercase" }}>AI Summary</div>
 
             {unlocked ? (
               <div style={{ marginTop: 12 }}>
@@ -908,7 +914,7 @@ function ResultsScreen({ result, unlocked, setUnlocked, expanded, setExpanded, c
               </div>
             ) : (
               <React.Fragment>
-                <div style={{ fontSize: 12, color: "#E8FFF0", marginTop: 8, lineHeight: 1.4 }}>Your spending patterns suggest…</div>
+                <div style={{ fontSize: 12, color: C.textSecondary, marginTop: 8, lineHeight: 1.4 }}>Your spending patterns suggest…</div>
                 <button onClick={scrollToPricing} className="glass" style={{ marginTop: 14, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 14, padding: "10px 14px", whiteSpace: "nowrap", position: "relative", overflow: "hidden" }}>
                   <Icon.Lock size={12} color={C.blue} />
                   <span style={{ fontSize: 11.5, fontWeight: 800, color: C.blue, letterSpacing: 0.3, textTransform: "uppercase" }}>Unlock Summary</span>
